@@ -82,7 +82,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
 
         {post.photos.length > 0 || post.videos.length > 0 ? (
           <div className="px-3 sm:px-4">
-            <PostMedia photos={post.photos} videos={post.videos} />
+            <PostMedia photos={post.photos} videos={post.videos} postUrl={post.url} />
           </div>
         ) : null}
 

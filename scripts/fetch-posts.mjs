@@ -71,13 +71,28 @@ function parsePosts(html) {
 
     // --- Videos ---
     const videos = [];
+    const playableThumbSrcs = new Set();
     $msg.find(".tgme_widget_message_video").each((_, el) => {
       const src = $(el).attr("src");
-      const thumb = extractBgUrl(
-        $(el).closest(".tgme_widget_message_video_player")
-          .find(".tgme_widget_message_video_thumb").attr("style")
-      );
-      if (src) videos.push({ src, thumb: thumb || null });
+      const thumbStyle = $(el)
+        .closest(".tgme_widget_message_video_player")
+        .find(".tgme_widget_message_video_thumb")
+        .attr("style");
+      const thumb = extractBgUrl(thumbStyle);
+      if (src) {
+        videos.push({ src, thumb: thumb || null });
+        if (thumb) playableThumbSrcs.add(thumb);
+      }
+    });
+
+    // Grouped videos: Telegram only serves <video> tags for standalone videos.
+    // Inside a grouped post we get only .tgme_widget_message_video_thumb nodes
+    // (background-image with the poster). Pick them up so the post has media
+    // on the feed; playback happens via the Telegram link.
+    $msg.find(".tgme_widget_message_video_thumb").each((_, el) => {
+      const thumb = extractBgUrl($(el).attr("style"));
+      if (!thumb || playableThumbSrcs.has(thumb)) return;
+      videos.push({ src: null, thumb });
     });
 
     // --- Round video / voice / audio (best-effort) ---
