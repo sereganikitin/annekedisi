@@ -14,6 +14,7 @@ export type SiteConfig = {
   robots: string;
   organization: { name: string; url: string; logo: string };
   verification: { yandex: string; google: string };
+  yandexMetrika: string;
 };
 
 export type PartnerLink = { title: string; url: string };
@@ -43,6 +44,7 @@ const SITE_DEFAULTS: SiteConfig = {
   robots: "index, follow",
   organization: { name: "Annekedisi", url: "https://pinkcrab.ru", logo: "" },
   verification: { yandex: "", google: "" },
+  yandexMetrika: "",
 };
 
 const PARTNERS_DEFAULTS: PartnerLinksFile = {
