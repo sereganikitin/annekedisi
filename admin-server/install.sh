@@ -45,6 +45,19 @@ mkdir -p "${DATA_DIR}"
 chown -R www-data:www-data "${DATA_DIR}"
 chmod 755 "${DATA_DIR}"
 
+# Seed live partner-links.json from the repo on first install only.
+if [ ! -s "${DATA_DIR}/partner-links.json" ]; then
+    echo "==> Seeding partner-links.json from GitHub"
+    if curl -fsSL https://raw.githubusercontent.com/sereganikitin/annekedisi/main/data/partner-links.json \
+        -o "${DATA_DIR}/partner-links.json.new"; then
+        mv "${DATA_DIR}/partner-links.json.new" "${DATA_DIR}/partner-links.json"
+        chown www-data:www-data "${DATA_DIR}/partner-links.json"
+    else
+        echo "    seed failed — admin will show defaults until first save"
+        rm -f "${DATA_DIR}/partner-links.json.new"
+    fi
+fi
+
 # --- 5. Credentials ---
 if [ ! -s "${INSTALL_DIR}/env" ] || [ "${1:-}" = "--rotate" ]; then
     echo

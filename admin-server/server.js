@@ -49,16 +49,16 @@ function must(name) {
 }
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(PARTNERS_FILE)) {
-  fs.writeFileSync(
-    PARTNERS_FILE,
-    JSON.stringify(
-      { blockTitle: "Наши друзья и партнёры", global: [], perPost: [] },
-      null,
-      2
-    )
-  );
-}
+// Do NOT auto-create PARTNERS_FILE here. While missing, nginx 404s the
+// public /data/partner-links.json endpoint and the front-end falls back
+// to the build-time content baked into the post HTML. The file is created
+// the first time the admin clicks Save.
+
+const DEFAULT_PARTNERS = {
+  blockTitle: "Наши друзья и партнёры",
+  global: [],
+  perPost: [],
+};
 
 // --- crypto helpers ---
 function verifyPassword(plain) {
@@ -218,7 +218,12 @@ const server = http.createServer(async (req, res) => {
     if (route === "GET /partners" || route === "GET /api/partners") {
       const u = sessionUser(req);
       if (!u) return send(res, 401, { error: "unauthorized" });
-      const data = JSON.parse(fs.readFileSync(PARTNERS_FILE, "utf8"));
+      let data;
+      try {
+        data = JSON.parse(fs.readFileSync(PARTNERS_FILE, "utf8"));
+      } catch {
+        data = DEFAULT_PARTNERS;
+      }
       return send(res, 200, data);
     }
 
