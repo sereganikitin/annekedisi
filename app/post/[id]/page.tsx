@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAllPosts, getPost, getNeighbors, formatDate } from "@/lib/posts";
+import { getSiteConfig, getPartnerLinksFor, absoluteUrl } from "@/lib/site";
 import { PostMedia } from "@/components/PostMedia";
 import { PostText } from "@/components/PostText";
+import { PartnerBlock } from "@/components/PartnerBlock";
 
 export const dynamicParams = false;
 
@@ -11,21 +13,42 @@ export function generateStaticParams() {
   return getAllPosts().map((p) => ({ id: p.id }));
 }
 
+function snippet(text: string, max: number): string {
+  if (!text) return "";
+  if (text.length <= max) return text;
+  return text.slice(0, max).replace(/\s+\S*$/, "") + "…";
+}
+
 export async function generateMetadata(
   props: PageProps<"/post/[id]">
 ): Promise<Metadata> {
   const { id } = await props.params;
   const post = getPost(id);
+  const site = getSiteConfig();
   if (!post) return { title: "Пост не найден" };
   const title = post.text
-    ? post.text.slice(0, 60).replace(/\s+\S*$/, "") + (post.text.length > 60 ? "…" : "")
+    ? snippet(post.text, 60)
     : `Пост #${post.id}`;
+  const description = post.text ? snippet(post.text, 200) : site.description;
+  const url = `${site.siteUrl.replace(/\/+$/, "")}/post/${post.id}/`;
   return {
-    title: `${title} — annekedisi`,
-    description: post.text.slice(0, 160) || `Пост из Telegram-канала annekedisi`,
+    title,
+    description,
+    alternates: { canonical: url },
     openGraph: {
+      type: "article",
       title,
-      description: post.text.slice(0, 200),
+      description,
+      url,
+      siteName: site.siteName,
+      locale: site.locale,
+      images: post.photos[0] ? [{ url: post.photos[0] }] : undefined,
+      publishedTime: post.datetime || undefined,
+    },
+    twitter: {
+      card: post.photos[0] ? "summary_large_image" : "summary",
+      title,
+      description,
       images: post.photos[0] ? [post.photos[0]] : undefined,
     },
   };
@@ -36,7 +59,44 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
   const post = getPost(id);
   if (!post) notFound();
 
+  const site = getSiteConfig();
   const { prev, next } = getNeighbors(id);
+  const { title: partnerTitle, links: partnerLinks } = getPartnerLinksFor(id);
+  const postUrl = `${site.siteUrl.replace(/\/+$/, "")}/post/${post.id}/`;
+
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.text ? snippet(post.text, 110) : `Пост #${post.id}`,
+    image: post.photos.length
+      ? post.photos
+      : post.videos[0]?.thumb
+      ? [post.videos[0].thumb]
+      : undefined,
+    datePublished: post.datetime || undefined,
+    dateModified: post.datetime || undefined,
+    author: { "@type": "Organization", name: site.organization.name },
+    publisher: {
+      "@type": "Organization",
+      name: site.organization.name,
+      url: site.siteUrl,
+      logo: site.organization.logo
+        ? { "@type": "ImageObject", url: absoluteUrl(site.organization.logo) }
+        : undefined,
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+    url: postUrl,
+    inLanguage: site.language,
+    articleBody: post.text || undefined,
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Лента", item: site.siteUrl },
+      { "@type": "ListItem", position: 2, name: `Пост #${post.id}`, item: postUrl },
+    ],
+  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-5">
@@ -125,6 +185,8 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           </a>
         ) : null}
 
+        <PartnerBlock title={partnerTitle} links={partnerLinks} />
+
         <footer className="border-t border-rose-200/60 px-5 py-4 text-sm dark:border-rose-900/40 sm:px-8">
           <a
             href={post.url}
@@ -170,6 +232,15 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           <div />
         )}
       </nav>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
     </div>
   );
 }

@@ -1,0 +1,17 @@
+{
+  "siteName": "annekedisi",
+  "siteUrl": "https://pinkcrab.ru",
+  "title": "Annekedisi — блог",
+  "tagline": "заметки и кадры",
+  "description": "Сайт-блог по постам Telegram-канала Annekedisi: заметки, видео и фото с прогулок, бытовых сцен и наших котиков.",
+  "ogImage": "",
+  "telegramChannel": "annekedisi",
+  "language": "ru",
+  "locale": "ru_RU",
+  "robots": "index, follow",
+  "organization": {
+    "name": "Annekedisi",
+    "url": "https://pinkcrab.ru",
+    "logo": ""
+  }
+}

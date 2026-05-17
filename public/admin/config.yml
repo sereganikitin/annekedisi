@@ -1,0 +1,88 @@
+# Sveltia CMS config for annekedisi
+# Edit at https://pinkcrab.ru/admin/
+
+backend:
+  name: github
+  repo: sereganikitin/annekedisi
+  branch: main
+  # Sveltia uses GitHub PKCE OAuth, no proxy server required.
+  # Paste your GitHub OAuth App Client ID here (it is NOT a secret):
+  #   github.com/settings/applications/new
+  #     - Homepage URL: https://pinkcrab.ru
+  #     - Callback URL: https://pinkcrab.ru/admin/
+  # After registering, set:
+  # client_id: <paste-here>
+
+site_url: https://pinkcrab.ru
+display_url: https://pinkcrab.ru
+logo_url: ""
+
+# Where uploaded images go (referenced via /uploads/<file> from the site)
+media_folder: public/uploads
+public_folder: /uploads
+
+locale: ru
+
+collections:
+  - name: site
+    label: Сайт
+    label_singular: настройку сайта
+    description: SEO, мета-теги, организация.
+    files:
+      - file: data/site.json
+        label: SEO и общие настройки
+        name: seo
+        fields:
+          - { name: siteName, label: Имя сайта (короткое), widget: string }
+          - { name: siteUrl, label: URL сайта, widget: string, default: "https://pinkcrab.ru" }
+          - { name: title, label: Заголовок (HTML title), widget: string }
+          - { name: tagline, label: Подзаголовок в шапке, widget: string }
+          - { name: description, label: Описание (meta description), widget: text }
+          - { name: ogImage, label: OG-картинка (URL или /uploads/...), widget: string, required: false }
+          - { name: telegramChannel, label: Telegram-канал (без @), widget: string }
+          - { name: language, label: Язык (ru, en, ...), widget: string, default: "ru" }
+          - { name: locale, label: Локаль (ru_RU, en_US, ...), widget: string, default: "ru_RU" }
+          - { name: robots, label: robots meta, widget: string, default: "index, follow" }
+          - name: organization
+            label: Организация (для schema.org)
+            widget: object
+            fields:
+              - { name: name, label: Название, widget: string }
+              - { name: url, label: URL, widget: string }
+              - { name: logo, label: Логотип (URL или /uploads/...), widget: string, required: false }
+
+  - name: partners
+    label: Партнёры
+    label_singular: блок партнёров
+    description: Ссылки на друзей и партнёров, отображаемые на детальных страницах постов.
+    files:
+      - file: data/partner-links.json
+        label: Партнёрские ссылки
+        name: links
+        fields:
+          - { name: blockTitle, label: Заголовок блока, widget: string, default: "Наши друзья и партнёры" }
+          - name: global
+            label: Глобальные ссылки (на каждом посте)
+            label_singular: ссылка
+            widget: list
+            summary: "{{fields.title}} → {{fields.url}}"
+            required: false
+            fields:
+              - { name: title, label: Текст ссылки, widget: string }
+              - { name: url, label: URL, widget: string }
+          - name: perPost
+            label: Индивидуальные ссылки для отдельных постов
+            label_singular: переопределение поста
+            widget: list
+            summary: "Пост #{{fields.postId}} — {{fields.links.length}} ссылок"
+            required: false
+            fields:
+              - { name: postId, label: ID поста (номер из Telegram), widget: string, hint: "Например 731 — берётся из URL /post/731/" }
+              - name: links
+                label: Ссылки для этого поста (добавляются к глобальным)
+                widget: list
+                label_singular: ссылка
+                summary: "{{fields.title}}"
+                fields:
+                  - { name: title, label: Текст ссылки, widget: string }
+                  - { name: url, label: URL, widget: string }

@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { BackgroundCats, CatFace } from "@/components/Cats";
+import { getSiteConfig, absoluteUrl } from "@/lib/site";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -10,16 +11,59 @@ const manrope = Manrope({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Annekedisi — блог",
-  description: "Заметки и кадры из канала Annekedisi",
-};
+export function generateMetadata(): Metadata {
+  const site = getSiteConfig();
+  const og = site.ogImage ? absoluteUrl(site.ogImage) : undefined;
+  return {
+    metadataBase: new URL(site.siteUrl),
+    title: { default: site.title, template: `%s — ${site.siteName}` },
+    description: site.description,
+    applicationName: site.siteName,
+    robots: site.robots,
+    openGraph: {
+      type: "website",
+      siteName: site.siteName,
+      title: site.title,
+      description: site.description,
+      url: site.siteUrl,
+      locale: site.locale,
+      images: og ? [og] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.title,
+      description: site.description,
+      images: og ? [og] : [],
+    },
+    alternates: { canonical: site.siteUrl },
+  };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const site = getSiteConfig();
+  const tg = `https://t.me/${site.telegramChannel}`;
+
+  const orgLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.organization.name,
+    url: site.siteUrl,
+    logo: site.organization.logo ? absoluteUrl(site.organization.logo) : undefined,
+    sameAs: [tg].filter(Boolean),
+  };
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.siteName,
+    url: site.siteUrl,
+    inLanguage: site.language,
+    description: site.description,
+  };
+
   return (
-    <html lang="ru" className={`${manrope.variable} h-full antialiased`}>
+    <html lang={site.language} className={`${manrope.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <BackgroundCats />
 
@@ -31,15 +75,15 @@ export default function RootLayout({
               </span>
               <span className="flex flex-col leading-tight">
                 <span className="text-base font-semibold tracking-tight text-rose-950 dark:text-rose-100">
-                  annekedisi
+                  {site.siteName}
                 </span>
                 <span className="text-xs text-rose-500/80 dark:text-rose-300/70">
-                  заметки и кадры
+                  {site.tagline}
                 </span>
               </span>
             </Link>
             <a
-              href="https://t.me/annekedisi"
+              href={tg}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition hover:border-rose-400 hover:text-rose-800 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
@@ -57,15 +101,24 @@ export default function RootLayout({
             Источник —{" "}
             <a
               className="underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-100"
-              href="https://t.me/annekedisi"
+              href={tg}
               target="_blank"
               rel="noopener noreferrer"
             >
-              @annekedisi
+              @{site.telegramChannel}
             </a>
             . Сайт не является официальным.
           </div>
         </footer>
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+        />
       </body>
     </html>
   );

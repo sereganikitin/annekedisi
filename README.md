@@ -39,17 +39,28 @@ npm run build    # пишет готовый сайт в ./out/
 ```
 app/
   page.tsx                лента постов
-  post/[id]/page.tsx      детальная страница
-  layout.tsx              шапка/подвал/шрифт
+  post/[id]/page.tsx      детальная страница с JSON-LD Article
+  layout.tsx              шапка/подвал, метаданные сайта, JSON-LD Organization/WebSite
+  sitemap.ts              авто-sitemap.xml
+  robots.ts               авто-robots.txt
 components/
   PostMedia.tsx           фото/видео грид (1/2/3/4+ раскладки)
   PostText.tsx            текст поста с линкификацией
+  PartnerBlock.tsx        блок партнёрских ссылок под постом
+  Cats.tsx                декоративные SVG-коты
 lib/
   posts.ts                чтение data/posts.json + утилиты
+  site.ts                 чтение data/site.json и data/partner-links.json
 scripts/
   fetch-posts.mjs         скрейпер t.me/s/annekedisi
 data/
   posts.json              кеш постов (коммитится в репозиторий)
+  site.json               SEO/мета настройки сайта (редактируется в /admin/)
+  partner-links.json      ссылки партнёров: global + per-post (редактируется в /admin/)
+public/
+  admin/index.html        Sveltia CMS (загружается с CDN)
+  admin/config.yml        схема CMS — какие файлы и поля редактируются
+  uploads/                сюда загружаются картинки из админки
 deploy/
   nginx.conf.example      пример конфига Nginx
   server-setup.sh         one-time bootstrap сервера (бэкапит старый лендинг)
@@ -106,5 +117,49 @@ deploy/
 ```bash
 npm run fetch:deep
 npm run build
-rsync -avz --delete ./out/ annekedisi@72.56.12.105:/var/www/pinkcrab.ru/
+rsync -avz --delete ./out/ seldegram@72.56.12.105:/var/www/landing/
 ```
+
+## Админка (Sveltia CMS)
+
+Веб-админка живёт по адресу <https://pinkcrab.ru/admin/>. Она правит файлы
+`data/site.json` и `data/partner-links.json` напрямую в GitHub: сохранение
+коммитит изменение в `main`, CI пересобирает сайт и раскатывает на сервер.
+
+### Что можно править
+
+- **Сайт → SEO и общие настройки** — заголовок, описание, OG-картинка, canonical, robots, организация (Schema.org).
+- **Партнёры → Партнёрские ссылки** — глобальные ссылки (выводятся под каждым постом) и индивидуальные для отдельных постов (например только для поста #731).
+
+### Одноразовая настройка GitHub OAuth App
+
+Sveltia использует PKCE-OAuth от GitHub напрямую, без бэкенда. Нужен только
+Client ID OAuth-приложения:
+
+1. Открой <https://github.com/settings/applications/new>
+2. **Application name:** `annekedisi CMS`
+3. **Homepage URL:** `https://pinkcrab.ru`
+4. **Authorization callback URL:** `https://pinkcrab.ru/admin/`
+5. Сохранить → скопировать **Client ID** (это публичная строка, секретом не является)
+6. Открыть `public/admin/config.yml` и заменить закомментированную строку:
+   ```yaml
+   # client_id: <paste-here>
+   ```
+   на:
+   ```yaml
+   client_id: Iv1.0123456789abcdef
+   ```
+7. Закоммитить и запушить — после деплоя /admin/ заработает.
+
+### Авторизация
+
+Кнопка «Sign in with GitHub», открывается PKCE-popup, требует доступ к
+`repo` для `sereganikitin/annekedisi`. У пользователя должен быть write-доступ
+к репо (или быть в команде с доступом). После входа открывается UI с двумя
+коллекциями: «Сайт» и «Партнёры».
+
+### Локальные изменения и админка
+
+Если правишь файлы в IDE, обычные `git commit && git push` — конфликтов
+с админкой нет, потому что Sveltia не держит локальной копии данных
+между сессиями.
