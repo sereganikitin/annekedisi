@@ -1,0 +1,21 @@
+[Unit]
+Description=annekedisi GitHub OAuth proxy (Sveltia/Decap-compatible)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/decap-oauth
+EnvironmentFile=/opt/decap-oauth/env
+ExecStart=/usr/bin/node /opt/decap-oauth/server.js
+Restart=on-failure
+RestartSec=3
+User=www-data
+Group=www-data
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadOnlyPaths=/opt/decap-oauth
+
+[Install]
+WantedBy=multi-user.target

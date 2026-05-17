@@ -5,10 +5,11 @@ backend:
   name: github
   repo: sereganikitin/annekedisi
   branch: main
-  # Sveltia uses its hosted auth proxy at auth.sveltia.dev for GitHub
-  # OAuth (PKCE без бэкенда GitHub пока не поддерживает). При первом
-  # логине GitHub попросит разрешение для приложения Sveltia на доступ
-  # к репозиторию — это нормально.
+  # OAuth handshake goes through our own tiny proxy on 72.56.12.105
+  # (see oauth-proxy/ in the repo). Nginx routes /oauth/* to a
+  # systemd service that holds the GitHub OAuth App secret.
+  base_url: https://pinkcrab.ru
+  auth_endpoint: oauth/auth
 
 site_url: https://pinkcrab.ru
 display_url: https://pinkcrab.ru
