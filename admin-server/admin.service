@@ -1,0 +1,21 @@
+[Unit]
+Description=annekedisi admin API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/admin
+EnvironmentFile=/opt/admin/env
+ExecStart=/usr/bin/node /opt/admin/server.js
+Restart=on-failure
+RestartSec=3
+User=www-data
+Group=www-data
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/www/admin-data
+
+[Install]
+WantedBy=multi-user.target

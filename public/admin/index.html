@@ -4,15 +4,440 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>annekedisi — CMS</title>
+  <title>annekedisi — админка</title>
   <link rel="icon" href="/favicon.ico" />
+  <style>
+    :root {
+      --bg: #fff1f4;
+      --bg-soft: #ffe9ef;
+      --card: rgba(255,255,255,0.92);
+      --border: rgba(244,114,182,0.35);
+      --text: #3a1f2b;
+      --muted: #9d6a7c;
+      --accent: #e11d48;
+      --accent-hover: #be123c;
+      --danger: #b91c1c;
+      --ok: #15803d;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c0d14;
+        --bg-soft: #2a1018;
+        --card: rgba(40,18,28,0.85);
+        --border: rgba(244,114,182,0.25);
+        --text: #f5e1e8;
+        --muted: #c89aaa;
+        --accent: #fb7185;
+        --accent-hover: #f43f5e;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(ellipse at top left, #ffd6e3 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, #ffe4ec 0%, transparent 60%),
+        linear-gradient(180deg, #fff5f7 0%, #ffe9ef 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background:
+          radial-gradient(ellipse at top left, #3a1a26 0%, transparent 55%),
+          radial-gradient(ellipse at bottom right, #2a1218 0%, transparent 60%),
+          linear-gradient(180deg, #150810 0%, #1f0c14 100%);
+        background-attachment: fixed;
+      }
+    }
+    main { max-width: 920px; margin: 0 auto; padding: 24px 16px 96px; }
+    h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.01em; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar a.home { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .topbar a.home:hover { color: var(--accent); }
+    .userbar { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--muted); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--card); color: var(--text); cursor: pointer;
+      font: inherit; font-size: 0.9rem; transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
+    .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+    .btn.tiny { padding: 4px 8px; font-size: 0.8rem; border-radius: 8px; }
+    .btn.icon { padding: 6px 8px; font-size: 0.85rem; }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(6px);
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px -8px rgba(190,24,93,0.18);
+    }
+
+    label.field { display: block; margin-bottom: 12px; }
+    label.field .lbl { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    input[type=text], input[type=password], input[type=url] {
+      width: 100%; padding: 10px 12px; border-radius: 12px;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.85);
+      color: var(--text); font: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      input[type=text], input[type=password], input[type=url] { background: rgba(30,12,20,0.6); }
+    }
+    input:focus { outline: 2px solid rgba(225,29,72,0.4); outline-offset: 1px; }
+
+    .link-row {
+      display: grid; grid-template-columns: 1fr 2fr auto auto auto;
+      gap: 8px; align-items: center; padding: 8px 0;
+      border-bottom: 1px dashed rgba(244,114,182,0.2);
+    }
+    .link-row:last-child { border-bottom: 0; }
+    .link-row input { padding: 8px 10px; }
+    .link-row .ctrls { display: flex; gap: 4px; }
+    .row-empty { color: var(--muted); font-style: italic; padding: 8px 0; font-size: 0.9rem; }
+
+    .post-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.6);
+    }
+    @media (prefers-color-scheme: dark) {
+      .post-card { background: rgba(30,12,20,0.4); }
+    }
+    .post-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .post-card-head .pid {
+      font-weight: 600;
+      display: inline-flex; gap: 6px; align-items: center;
+    }
+    .post-card-head .pid a { color: var(--muted); font-size: 0.8rem; text-decoration: none; }
+    .post-card-head .pid a:hover { color: var(--accent); }
+
+    .add-row {
+      display: flex; gap: 8px; margin-top: 12px;
+    }
+    .add-row input { flex: 1; }
+
+    .alert {
+      padding: 10px 14px; border-radius: 12px; margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    .alert.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert.ok    { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    @media (prefers-color-scheme: dark) {
+      .alert.error { background: rgba(127,29,29,0.4); color: #fecaca; border-color: rgba(252,165,165,0.4); }
+      .alert.ok    { background: rgba(20,83,45,0.4); color: #bbf7d0; border-color: rgba(134,239,172,0.4); }
+    }
+
+    .save-bar {
+      position: sticky; bottom: 16px;
+      display: flex; gap: 8px; justify-content: flex-end;
+      padding: 12px 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px -12px rgba(190,24,93,0.35);
+      margin-top: 16px; align-items: center;
+    }
+    .save-bar .status { flex: 1; color: var(--muted); font-size: 0.85rem; }
+
+    .login-shell {
+      max-width: 380px; margin: 12vh auto 0;
+    }
+    .login-shell .card { padding: 28px; }
+    .center { text-align: center; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  </style>
 </head>
 <body>
-  <!--
-    Sveltia CMS — drop-in admin UI. Reads /admin/config.yml, commits to
-    GitHub directly via PKCE OAuth. Updating any file triggers the deploy
-    workflow which rebuilds the static site.
-  -->
-  <script type="module" src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+  <div id="app"></div>
+  <script type="module">
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const h = (tag, props = {}, ...children) => {
+      const el = document.createElement(tag);
+      for (const [k, v] of Object.entries(props || {})) {
+        if (k === "class") el.className = v;
+        else if (k === "html") el.innerHTML = v;
+        else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+        else if (v === false || v === null || v === undefined) continue;
+        else if (v === true) el.setAttribute(k, "");
+        else el.setAttribute(k, v);
+      }
+      for (const c of children.flat()) {
+        if (c === null || c === undefined || c === false) continue;
+        el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+      }
+      return el;
+    };
+
+    const state = {
+      user: null,
+      data: null,
+      dirty: false,
+      saving: false,
+      message: null,
+      messageType: "ok",
+    };
+
+    function setState(patch) {
+      Object.assign(state, patch);
+      render();
+    }
+
+    function setMessage(text, type = "ok", ttl = 4000) {
+      setState({ message: text, messageType: type });
+      if (ttl) setTimeout(() => {
+        if (state.message === text) setState({ message: null });
+      }, ttl);
+    }
+
+    async function api(method, path, body) {
+      const opts = { method, credentials: "same-origin", headers: {} };
+      if (body !== undefined) {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(body);
+      }
+      const res = await fetch("/api" + path, opts);
+      const ct = res.headers.get("content-type") || "";
+      const data = ct.includes("application/json") ? await res.json().catch(() => null) : await res.text();
+      return { status: res.status, data };
+    }
+
+    async function bootstrap() {
+      const me = await api("GET", "/me");
+      if (me.status === 200) {
+        await loadData(me.data.user);
+      } else {
+        setState({ user: null });
+      }
+    }
+
+    async function loadData(user) {
+      const r = await api("GET", "/partners");
+      if (r.status !== 200) {
+        setMessage("Не удалось загрузить данные: " + (r.data?.error || r.status), "error", 0);
+        return;
+      }
+      setState({ user, data: r.data, dirty: false });
+    }
+
+    async function doLogin(user, password) {
+      const r = await api("POST", "/login", { user, password });
+      if (r.status === 200) {
+        setMessage("Вход выполнен", "ok");
+        await loadData(r.data.user);
+      } else {
+        setMessage("Неверный логин или пароль", "error", 0);
+      }
+    }
+
+    async function doLogout() {
+      await api("POST", "/logout");
+      setState({ user: null, data: null });
+    }
+
+    async function save() {
+      if (!state.data) return;
+      setState({ saving: true });
+      const r = await api("PUT", "/partners", state.data);
+      setState({ saving: false });
+      if (r.status === 200) {
+        setState({ data: r.data, dirty: false });
+        setMessage("Сохранено · изменения видны на сайте сразу", "ok");
+      } else if (r.status === 401) {
+        setMessage("Сессия истекла — войди заново", "error", 0);
+        setState({ user: null });
+      } else {
+        setMessage("Ошибка сохранения: " + (r.data?.error || r.status), "error", 0);
+      }
+    }
+
+    function mutate(fn) {
+      const clone = JSON.parse(JSON.stringify(state.data));
+      fn(clone);
+      setState({ data: clone, dirty: true });
+    }
+
+    function move(arr, idx, dir) {
+      const j = idx + dir;
+      if (j < 0 || j >= arr.length) return;
+      const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+    }
+
+    // --- views ---
+    function renderLogin() {
+      let u = "", p = "";
+      const submit = (e) => {
+        e.preventDefault();
+        doLogin(u, p);
+      };
+      return h("div", { class: "login-shell" },
+        h("div", { class: "card" },
+          h("h1", { class: "center" }, "🐈 annekedisi · админка"),
+          h("p", { class: "center muted" }, "Войди, чтобы редактировать партнёрский блок"),
+          h("form", { onsubmit: submit, style: "margin-top: 16px" },
+            h("label", { class: "field" },
+              h("span", { class: "lbl" }, "Логин"),
+              h("input", { type: "text", autocomplete: "username", required: true, oninput: (e) => u = e.target.value }),
+            ),
+            h("label", { class: "field" },
+              h("span", { class: "lbl" }, "Пароль"),
+              h("input", { type: "password", autocomplete: "current-password", required: true, oninput: (e) => p = e.target.value }),
+            ),
+            state.message ? h("div", { class: "alert " + state.messageType }, state.message) : null,
+            h("button", { class: "btn primary", style: "width: 100%; justify-content: center", type: "submit" }, "Войти"),
+          ),
+        ),
+      );
+    }
+
+    function renderLinkRow(link, i, list) {
+      return h("div", { class: "link-row" },
+        h("input", { type: "text", placeholder: "Название", value: link.title, oninput: (e) => mutate(d => { list(d)[i].title = e.target.value; }) }),
+        h("input", { type: "url",  placeholder: "https://...", value: link.url,   oninput: (e) => mutate(d => { list(d)[i].url   = e.target.value; }) }),
+        h("button", { class: "btn icon", title: "Вверх", onclick: () => mutate(d => move(list(d), i, -1)) }, "↑"),
+        h("button", { class: "btn icon", title: "Вниз", onclick: () => mutate(d => move(list(d), i, +1)) }, "↓"),
+        h("button", { class: "btn icon danger", title: "Удалить", onclick: () => mutate(d => { list(d).splice(i, 1); }) }, "✕"),
+      );
+    }
+
+    function renderEditor() {
+      const { data } = state;
+
+      const globalList = (d) => d.global;
+      const globalSection = h("div", { class: "card" },
+        h("h2", null, "Глобальные ссылки"),
+        h("p", { class: "muted", style: "margin: -6px 0 12px" }, "Показываются на каждой странице поста."),
+        h("label", { class: "field" },
+          h("span", { class: "lbl" }, "Заголовок блока"),
+          h("input", { type: "text", value: data.blockTitle, oninput: (e) => mutate(d => { d.blockTitle = e.target.value; }) }),
+        ),
+        ...(data.global.length
+          ? data.global.map((l, i) => renderLinkRow(l, i, globalList))
+          : [h("div", { class: "row-empty" }, "Пока нет глобальных ссылок.")]),
+        h("button", {
+          class: "btn",
+          style: "margin-top: 12px",
+          onclick: () => mutate(d => { d.global.push({ title: "", url: "" }); }),
+        }, "+ Добавить ссылку"),
+      );
+
+      let newPostId = "";
+      const perPostSection = h("div", { class: "card" },
+        h("h2", null, "Ссылки для отдельных постов"),
+        h("p", { class: "muted", style: "margin: -6px 0 12px" }, "Дополняют глобальные на странице конкретного поста."),
+        ...(data.perPost.length
+          ? data.perPost.map((entry, ei) => {
+              const linksList = (d) => d.perPost[ei].links;
+              return h("div", { class: "post-card" },
+                h("div", { class: "post-card-head" },
+                  h("span", { class: "pid" },
+                    "Пост #" + entry.postId,
+                    h("a", { href: "/post/" + entry.postId + "/", target: "_blank", rel: "noopener noreferrer" }, "↗"),
+                  ),
+                  h("button", { class: "btn tiny danger", onclick: () => mutate(d => { d.perPost.splice(ei, 1); }) }, "Удалить пост"),
+                ),
+                ...(entry.links.length
+                  ? entry.links.map((l, i) => renderLinkRow(l, i, linksList))
+                  : [h("div", { class: "row-empty" }, "Нет ссылок для этого поста.")]),
+                h("button", {
+                  class: "btn tiny",
+                  style: "margin-top: 8px",
+                  onclick: () => mutate(d => { d.perPost[ei].links.push({ title: "", url: "" }); }),
+                }, "+ Ссылка для этого поста"),
+              );
+            })
+          : [h("div", { class: "row-empty" }, "Пока нет индивидуальных переопределений.")]),
+        h("div", { class: "add-row" },
+          h("input", {
+            type: "text",
+            placeholder: "ID поста (например 731)",
+            oninput: (e) => newPostId = e.target.value.trim(),
+            onkeydown: (e) => { if (e.key === "Enter") { e.preventDefault(); $("#add-post-btn").click(); } },
+          }),
+          h("button", {
+            id: "add-post-btn",
+            class: "btn",
+            onclick: () => {
+              if (!/^\d+$/.test(newPostId)) {
+                setMessage("ID поста должен быть числом", "error");
+                return;
+              }
+              const existing = data.perPost.find(p => p.postId === newPostId);
+              if (existing) {
+                setMessage("Пост #" + newPostId + " уже в списке", "error");
+                return;
+              }
+              mutate(d => { d.perPost.push({ postId: newPostId, links: [] }); });
+              newPostId = "";
+              setMessage("Пост добавлен — впиши ссылки внутри карточки", "ok");
+            },
+          }, "+ Добавить пост"),
+        ),
+      );
+
+      return h("div", null,
+        h("div", { class: "topbar" },
+          h("div", null,
+            h("h1", null, "🐈 annekedisi · админка"),
+            h("a", { class: "home", href: "/" }, "← вернуться на сайт"),
+          ),
+          h("div", { class: "userbar" },
+            h("span", null, state.user),
+            h("button", { class: "btn tiny", onclick: doLogout }, "Выйти"),
+          ),
+        ),
+        state.message ? h("div", { class: "alert " + state.messageType }, state.message) : null,
+        globalSection,
+        perPostSection,
+        h("div", { class: "save-bar" },
+          h("span", { class: "status" }, state.dirty ? "Есть несохранённые изменения" : "Изменений нет"),
+          h("button", { class: "btn primary", disabled: !state.dirty || state.saving, onclick: save }, state.saving ? "Сохраняем…" : "Сохранить"),
+        ),
+      );
+    }
+
+    function renderLoading() {
+      return h("div", { class: "login-shell" },
+        h("div", { class: "card center" }, "Загрузка…"),
+      );
+    }
+
+    function render() {
+      const root = document.getElementById("app");
+      root.innerHTML = "";
+      if (state.user && state.data) root.appendChild(renderEditor());
+      else if (state.user && !state.data) root.appendChild(renderLoading());
+      else root.appendChild(renderLogin());
+    }
+
+    window.addEventListener("beforeunload", (e) => {
+      if (state.dirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+
+    render();
+    bootstrap();
+  </script>
 </body>
 </html>

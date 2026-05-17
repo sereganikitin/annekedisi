@@ -185,7 +185,10 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           </a>
         ) : null}
 
-        <PartnerBlock title={partnerTitle} links={partnerLinks} />
+        <PartnerBlock
+          postId={post.id}
+          fallback={{ title: partnerTitle, links: partnerLinks }}
+        />
 
         <footer className="border-t border-rose-200/60 px-5 py-4 text-sm dark:border-rose-900/40 sm:px-8">
           <a
