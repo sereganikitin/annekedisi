@@ -1,0 +1,13 @@
+{
+  "_comment": "Per-post SEO overrides. Auto-generated values are used when fields are missing. Edit by post id.",
+  "overrides": [
+    {
+      "_example": true,
+      "postId": "731",
+      "title": "",
+      "h1": "",
+      "description": "",
+      "keywords": []
+    }
+  ]
+}

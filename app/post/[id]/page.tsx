@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAllPosts, getPost, getNeighbors, formatDate } from "@/lib/posts";
 import { getSiteConfig, getPartnerLinksFor, absoluteUrl } from "@/lib/site";
+import { getPostSeo } from "@/lib/post-seo";
 import { PostMedia } from "@/components/PostMedia";
 import { PostText } from "@/components/PostText";
 import { PartnerBlock } from "@/components/PartnerBlock";
@@ -13,33 +14,26 @@ export function generateStaticParams() {
   return getAllPosts().map((p) => ({ id: p.id }));
 }
 
-function snippet(text: string, max: number): string {
-  if (!text) return "";
-  if (text.length <= max) return text;
-  return text.slice(0, max).replace(/\s+\S*$/, "") + "…";
-}
-
 export async function generateMetadata(
   props: PageProps<"/post/[id]">
 ): Promise<Metadata> {
   const { id } = await props.params;
   const post = getPost(id);
-  const site = getSiteConfig();
   if (!post) return { title: "Пост не найден" };
-  const title = post.text
-    ? snippet(post.text, 60)
-    : `Пост #${post.id}`;
-  const description = post.text ? snippet(post.text, 200) : site.description;
-  const url = `${site.siteUrl.replace(/\/+$/, "")}/post/${post.id}/`;
+
+  const seo = getPostSeo(post);
+  const site = getSiteConfig();
+
   return {
-    title,
-    description,
-    alternates: { canonical: url },
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords.length ? seo.keywords : undefined,
+    alternates: { canonical: seo.canonical },
     openGraph: {
       type: "article",
-      title,
-      description,
-      url,
+      title: seo.title,
+      description: seo.description,
+      url: seo.canonical,
       siteName: site.siteName,
       locale: site.locale,
       images: post.photos[0] ? [{ url: post.photos[0] }] : undefined,
@@ -47,8 +41,8 @@ export async function generateMetadata(
     },
     twitter: {
       card: post.photos[0] ? "summary_large_image" : "summary",
-      title,
-      description,
+      title: seo.title,
+      description: seo.description,
       images: post.photos[0] ? [post.photos[0]] : undefined,
     },
   };
@@ -60,14 +54,15 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
   if (!post) notFound();
 
   const site = getSiteConfig();
+  const seo = getPostSeo(post);
   const { prev, next } = getNeighbors(id);
   const { title: partnerTitle, links: partnerLinks } = getPartnerLinksFor(id);
-  const postUrl = `${site.siteUrl.replace(/\/+$/, "")}/post/${post.id}/`;
 
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: post.text ? snippet(post.text, 110) : `Пост #${post.id}`,
+    headline: seo.h1,
+    description: seo.description,
     image: post.photos.length
       ? post.photos
       : post.videos[0]?.thumb
@@ -75,7 +70,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
       : undefined,
     datePublished: post.datetime || undefined,
     dateModified: post.datetime || undefined,
-    author: { "@type": "Organization", name: site.organization.name },
+    author: { "@type": "Organization", name: site.organization.name, url: site.siteUrl },
     publisher: {
       "@type": "Organization",
       name: site.organization.name,
@@ -84,17 +79,21 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
         ? { "@type": "ImageObject", url: absoluteUrl(site.organization.logo) }
         : undefined,
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
-    url: postUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": seo.canonical },
+    url: seo.canonical,
     inLanguage: site.language,
     articleBody: post.text || undefined,
+    wordCount: seo.wordCount || undefined,
+    keywords: seo.keywords.length ? seo.keywords.join(", ") : undefined,
+    articleSection: "Заметки",
+    isPartOf: { "@type": "WebSite", name: site.siteName, url: site.siteUrl },
   };
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Лента", item: site.siteUrl },
-      { "@type": "ListItem", position: 2, name: `Пост #${post.id}`, item: postUrl },
+      { "@type": "ListItem", position: 2, name: seo.h1, item: seo.canonical },
     ],
   };
 
@@ -112,6 +111,9 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
 
       <article className="mt-4 overflow-hidden rounded-3xl border border-rose-200/70 bg-white/85 shadow-sm backdrop-blur-sm dark:border-rose-900/40 dark:bg-rose-950/60">
         <header className="px-5 pt-6 pb-3 sm:px-8 sm:pt-8">
+          <h1 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-rose-950 sm:text-3xl dark:text-rose-50">
+            {seo.h1}
+          </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-rose-500/80 dark:text-rose-300/70">
             <time dateTime={post.datetime ?? undefined}>
               {formatDate(post.datetime, true)}
