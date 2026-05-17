@@ -1,0 +1,45 @@
+# /etc/nginx/sites-available/annekedisi.pinkcrab.ru
+# Symlink to sites-enabled and reload nginx:
+#   sudo ln -s /etc/nginx/sites-available/annekedisi.pinkcrab.ru /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# For HTTPS use certbot:
+#   sudo certbot --nginx -d annekedisi.pinkcrab.ru
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name annekedisi.pinkcrab.ru;
+
+    root /var/www/annekedisi.pinkcrab.ru;
+    index index.html;
+
+    # Static assets — long cache
+    location /_next/static/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    location ~* \.(?:css|js|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|avif|ico)$ {
+        expires 30d;
+        add_header Cache-Control "public";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # HTML pages — short cache; trailing-slash routing
+    location / {
+        try_files $uri $uri/ $uri.html $uri/index.html =404;
+        add_header Cache-Control "public, max-age=300, must-revalidate";
+    }
+
+    location = /404.html {
+        internal;
+    }
+    error_page 404 /404.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript application/xml application/rss+xml text/javascript image/svg+xml;
+    gzip_min_length 1024;
+}

@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# annekedisi blog
 
-## Getting Started
+Статический сайт-блог, который превращает посты публичного Telegram-канала [@annekedisi](https://t.me/annekedisi) в красивую ленту с детальными страницами постов.
 
-First, run the development server:
+Production: <https://annekedisi.pinkcrab.ru>
+
+## Стек
+
+- **Next.js 16** (App Router, статический экспорт `output: "export"`)
+- **React 19**, **TypeScript**
+- **Tailwind CSS v4**
+- Скрейпер постов на чистом Node + cheerio — никаких токенов и ботов
+
+## Разработка
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run fetch    # подтянуть свежие посты в data/posts.json
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Билд + статический экспорт:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build    # пишет готовый сайт в ./out/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Скрипты
 
-## Learn More
+| Команда             | Что делает                                              |
+| ------------------- | ------------------------------------------------------- |
+| `npm run dev`       | Dev-сервер Next.js с Turbopack                          |
+| `npm run fetch`     | Тянет ~5 страниц истории канала (≈100 постов)           |
+| `npm run fetch:deep`| Тянет до 20 страниц (≈400 постов)                       |
+| `npm run build`     | Статический экспорт сайта в `out/`                      |
 
-To learn more about Next.js, take a look at the following resources:
+## Структура
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+  page.tsx                лента постов
+  post/[id]/page.tsx      детальная страница
+  layout.tsx              шапка/подвал/шрифт
+components/
+  PostMedia.tsx           фото/видео грид (1/2/3/4+ раскладки)
+  PostText.tsx            текст поста с линкификацией
+lib/
+  posts.ts                чтение data/posts.json + утилиты
+scripts/
+  fetch-posts.mjs         скрейпер t.me/s/annekedisi
+data/
+  posts.json              кеш постов (коммитится в репозиторий)
+deploy/
+  nginx.conf.example      пример конфига Nginx
+  server-setup.sh         one-time bootstrap сервера
+.github/workflows/
+  deploy.yml              CI: fetch + build + rsync на сервер
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Деплой
 
-## Deploy on Vercel
+Сайт — статика. Деплой = `rsync out/ → /var/www/annekedisi.pinkcrab.ru/`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Первичная настройка сервера (72.56.12.105)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Прописать DNS: `annekedisi.pinkcrab.ru A 72.56.12.105`
+2. На сервере выполнить `deploy/server-setup.sh` (ставит nginx, создаёт пользователя `annekedisi` и web-root)
+3. Получить TLS: `certbot --nginx -d annekedisi.pinkcrab.ru`
+
+### Автодеплой через GitHub Actions
+
+В репозитории `Settings → Secrets → Actions` нужно завести:
+
+| Secret           | Значение                              |
+| ---------------- | ------------------------------------- |
+| `DEPLOY_HOST`    | `72.56.12.105`                        |
+| `DEPLOY_USER`    | `annekedisi` (или другой)             |
+| `DEPLOY_PATH`    | `/var/www/annekedisi.pinkcrab.ru`     |
+| `DEPLOY_SSH_KEY` | приватный ключ (содержимое `id_ed25519`) |
+
+Публичный ключ нужно положить в `/home/annekedisi/.ssh/authorized_keys` на сервере.
+
+Воркфлоу `.github/workflows/deploy.yml`:
+- запускается на каждый `push` в `main`,
+- по расписанию каждые 4 часа (обновляет `data/posts.json` и коммитит обратно),
+- ручной запуск через `workflow_dispatch`.
+
+### Ручной деплой с локальной машины
+
+```bash
+npm run fetch:deep
+npm run build
+rsync -avz --delete ./out/ annekedisi@72.56.12.105:/var/www/annekedisi.pinkcrab.ru/
+```
