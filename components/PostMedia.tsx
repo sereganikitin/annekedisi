@@ -59,13 +59,23 @@ function VideoPlaceholder({
       }`}
     >
       {thumb ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={thumb}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-        />
+        <>
+          {/* Blurred backdrop — same thumb, blown up. The native thumb
+              Telegram serves is ~180×320 and stretches awfully when
+              cover-fit into a wider card. */}
+          <div
+            className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl brightness-90 dark:brightness-75"
+            style={{ backgroundImage: `url("${thumb}")` }}
+            aria-hidden="true"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={thumb}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 m-auto h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]"
+          />
+        </>
       ) : null}
       <div className="absolute inset-0 grid place-items-center bg-gradient-to-t from-black/40 via-black/0 to-black/0">
         <span className="grid h-14 w-14 place-items-center rounded-full bg-white/90 text-rose-700 shadow-lg backdrop-blur-sm transition group-hover:scale-110 dark:bg-rose-950/80 dark:text-rose-100">

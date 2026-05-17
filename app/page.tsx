@@ -37,6 +37,11 @@ function FeedCard({ post }: { post: Post }) {
   const cover = post.photos[0] || post.videos[0]?.thumb || null;
   const isVideo = post.videos.length > 0;
   const mediaCount = post.photos.length + post.videos.length;
+  // Telegram serves grouped-video thumbnails at ~180×320, which goes mushy
+  // when stretched into a card cover. Use the same image as a blurred
+  // backdrop and place the thumbnail on top in object-contain so the actual
+  // pixels are never enlarged.
+  const useBlurredBg = !post.photos.length && post.videos.length > 0;
 
   return (
     <article className="group grid aspect-[4/5] h-full grid-rows-[3fr_2fr] overflow-hidden rounded-3xl border border-rose-200/70 bg-white/85 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-200/50 dark:border-rose-900/40 dark:bg-rose-950/60">
@@ -46,13 +51,30 @@ function FeedCard({ post }: { post: Post }) {
         className="relative block overflow-hidden bg-rose-100/60 dark:bg-rose-950/40"
       >
         {cover ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={cover}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
-          />
+          useBlurredBg ? (
+            <>
+              <div
+                className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl brightness-90 dark:brightness-75"
+                style={{ backgroundImage: `url("${cover}")` }}
+                aria-hidden="true"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cover}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 m-auto h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]"
+              />
+            </>
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={cover}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+            />
+          )
         ) : (
           <div className="grid h-full place-items-center bg-gradient-to-br from-rose-100/80 to-pink-100/60 text-rose-300/80 dark:from-rose-950/60 dark:to-rose-900/40 dark:text-rose-700/60">
             <CatPaw className="h-20 w-20 rotate-[-12deg]" />
