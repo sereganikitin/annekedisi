@@ -36,6 +36,10 @@ export function generateMetadata(): Metadata {
       images: og ? [og] : [],
     },
     alternates: { canonical: site.siteUrl },
+    verification: {
+      yandex: site.verification?.yandex || undefined,
+      google: site.verification?.google || undefined,
+    },
   };
 }
 

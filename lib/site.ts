@@ -13,6 +13,7 @@ export type SiteConfig = {
   locale: string;
   robots: string;
   organization: { name: string; url: string; logo: string };
+  verification: { yandex: string; google: string };
 };
 
 export type PartnerLink = { title: string; url: string };
@@ -41,6 +42,7 @@ const SITE_DEFAULTS: SiteConfig = {
   locale: "ru_RU",
   robots: "index, follow",
   organization: { name: "Annekedisi", url: "https://pinkcrab.ru", logo: "" },
+  verification: { yandex: "", google: "" },
 };
 
 const PARTNERS_DEFAULTS: PartnerLinksFile = {

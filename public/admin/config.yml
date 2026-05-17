@@ -50,6 +50,12 @@ collections:
               - { name: name, label: Название, widget: string }
               - { name: url, label: URL, widget: string }
               - { name: logo, label: Логотип (URL или /uploads/...), widget: string, required: false }
+          - name: verification
+            label: Подтверждение прав в поисковиках
+            widget: object
+            fields:
+              - { name: yandex, label: Yandex (content из <meta name=yandex-verification>), widget: string, required: false }
+              - { name: google, label: Google (content из <meta name=google-site-verification>), widget: string, required: false }
 
   - name: partners
     label: Партнёры
