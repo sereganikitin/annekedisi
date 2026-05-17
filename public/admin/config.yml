@@ -5,9 +5,10 @@ backend:
   name: github
   repo: sereganikitin/annekedisi
   branch: main
-  # Sveltia uses GitHub PKCE OAuth, no proxy server required.
-  # GitHub OAuth App callback must be https://pinkcrab.ru/admin/
-  client_id: Ov23liaWF3BPxFRcqp40
+  # Sveltia PKCE flow against own OAuth App.
+  # The OAuth App callback must be exactly https://pinkcrab.ru/admin/
+  auth_type: pkce
+  app_id: Ov23liaWF3BPxFRcqp40
 
 site_url: https://pinkcrab.ru
 display_url: https://pinkcrab.ru
