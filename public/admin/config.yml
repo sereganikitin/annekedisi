@@ -5,10 +5,10 @@ backend:
   name: github
   repo: sereganikitin/annekedisi
   branch: main
-  # Sveltia PKCE flow against own OAuth App.
-  # The OAuth App callback must be exactly https://pinkcrab.ru/admin/
-  auth_type: pkce
-  app_id: Ov23liaWF3BPxFRcqp40
+  # Sveltia uses its hosted auth proxy at auth.sveltia.dev for GitHub
+  # OAuth (PKCE без бэкенда GitHub пока не поддерживает). При первом
+  # логине GitHub попросит разрешение для приложения Sveltia на доступ
+  # к репозиторию — это нормально.
 
 site_url: https://pinkcrab.ru
 display_url: https://pinkcrab.ru
