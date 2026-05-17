@@ -9,6 +9,12 @@
 # You will be prompted for an admin username + password. Both are hashed with
 # scrypt and stored only on the server. Repeat the install to rotate.
 
+# Self-heal CRLF if scp'd from a Windows working tree
+if head -c4096 "$0" | grep -q $'\r'; then
+    sed -i 's/\r$//' "$0"
+    exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 INSTALL_DIR="/opt/admin"
@@ -34,11 +40,13 @@ if systemctl list-unit-files --no-legend | grep -q "^oauth-proxy.service"; then
     systemctl daemon-reload
 fi
 
-# --- 3. Drop files ---
+# --- 3. Drop files (strip any CRLF on the way in) ---
 echo "==> Installing files into ${INSTALL_DIR}"
 mkdir -p "${INSTALL_DIR}"
-install -o root -g root -m 644 /tmp/server.js "${INSTALL_DIR}/server.js"
-install -o root -g root -m 644 /tmp/admin.service "${SERVICE_FILE}"
+tr -d '\r' < /tmp/server.js     > "${INSTALL_DIR}/server.js"
+tr -d '\r' < /tmp/admin.service > "${SERVICE_FILE}"
+chown root:root "${INSTALL_DIR}/server.js" "${SERVICE_FILE}"
+chmod 644      "${INSTALL_DIR}/server.js" "${SERVICE_FILE}"
 
 # --- 4. Live data dir, writable by www-data ---
 mkdir -p "${DATA_DIR}"
