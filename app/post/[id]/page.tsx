@@ -188,14 +188,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           </a>
         ) : null}
 
-        <PartnerBlock
-          postId={post.id}
-          fallback={{ title: partnerTitle, links: partnerLinks }}
-        />
-
-        <Comments postId={post.id} />
-
-        <footer className="border-t border-rose-200/60 px-5 py-4 text-sm dark:border-rose-900/40 sm:px-8">
+        <div className="border-t border-rose-200/60 px-5 py-4 text-sm dark:border-rose-900/40 sm:px-8">
           <a
             href={post.url}
             target="_blank"
@@ -205,10 +198,12 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
             Открыть в Telegram
             <span aria-hidden>↗</span>
           </a>
-        </footer>
+        </div>
+
+        <Comments postId={post.id} />
       </article>
 
-      <nav className="mt-6 mb-12 grid gap-3 sm:grid-cols-2">
+      <nav className="mt-6 grid gap-3 sm:grid-cols-2">
         {prev ? (
           <Link
             href={`/post/${prev.id}`}
@@ -240,6 +235,13 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           <div />
         )}
       </nav>
+
+      {/* Future sections go above this block so PartnerBlock always stays
+          at the very bottom of the page. */}
+      <PartnerBlock
+        postId={post.id}
+        fallback={{ title: partnerTitle, links: partnerLinks }}
+      />
 
       <script
         type="application/ld+json"

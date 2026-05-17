@@ -49,7 +49,7 @@ export function PartnerBlock({
   if (!snap.links.length) return null;
 
   return (
-    <section className="mx-5 mb-6 rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 to-pink-50/70 p-5 sm:mx-8 dark:border-rose-900/40 dark:from-rose-950/50 dark:to-pink-950/40">
+    <section className="mt-6 mb-12 rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 to-pink-50/70 p-5 backdrop-blur-sm dark:border-rose-900/40 dark:from-rose-950/50 dark:to-pink-950/40">
       <div className="mb-3 text-xs font-medium uppercase tracking-wide text-rose-500/80 dark:text-rose-300/70">
         {snap.title}
       </div>
