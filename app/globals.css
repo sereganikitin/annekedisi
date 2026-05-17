@@ -11,20 +11,34 @@ html {
 
 body {
   font-family: var(--font-sans);
+  background-color: #fff1f4;
+  background-image:
+    radial-gradient(ellipse at top left, #ffd6e3 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, #ffe4ec 0%, transparent 60%),
+    linear-gradient(180deg, #fff5f7 0%, #ffe9ef 100%);
+  background-attachment: fixed;
+  color: #3a1f2b;
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+  body {
+    background-color: #1c0d14;
+    background-image:
+      radial-gradient(ellipse at top left, #3a1a26 0%, transparent 55%),
+      radial-gradient(ellipse at bottom right, #2a1218 0%, transparent 60%),
+      linear-gradient(180deg, #150810 0%, #1f0c14 100%);
+    color: #f5e1e8;
+  }
 }
 
-/* Hide the ugly default focus outline on mouse, keep it for keyboard */
 :focus:not(:focus-visible) {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid rgb(244 63 94 / 0.5);
+  outline: 2px solid rgb(244 63 94 / 0.6);
   outline-offset: 2px;
   border-radius: 4px;
 }

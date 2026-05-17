@@ -89,7 +89,7 @@ function Img({
   objectFit?: string;
 }) {
   return (
-    <div className={`overflow-hidden rounded-2xl bg-stone-100 dark:bg-stone-900 ${ratio}`}>
+    <div className={`overflow-hidden rounded-2xl bg-rose-100/60 dark:bg-rose-950/40 ${ratio}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}

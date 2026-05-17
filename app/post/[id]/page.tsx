@@ -43,16 +43,16 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
       <div className="pt-6 sm:pt-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-stone-500 transition hover:text-rose-600"
+          className="inline-flex items-center gap-1 text-sm text-rose-600/80 transition hover:text-rose-700 dark:text-rose-300/80 dark:hover:text-rose-200"
         >
           <span aria-hidden>←</span>
           К ленте
         </Link>
       </div>
 
-      <article className="mt-4 overflow-hidden rounded-3xl border border-stone-200/70 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
+      <article className="mt-4 overflow-hidden rounded-3xl border border-rose-200/70 bg-white/85 shadow-sm backdrop-blur-sm dark:border-rose-900/40 dark:bg-rose-950/60">
         <header className="px-5 pt-6 pb-3 sm:px-8 sm:pt-8">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-rose-500/80 dark:text-rose-300/70">
             <time dateTime={post.datetime ?? undefined}>
               {formatDate(post.datetime, true)}
             </time>
@@ -73,7 +73,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
               href={post.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stone-400 underline decoration-dotted hover:text-rose-600"
+              className="text-rose-400/80 underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-200"
             >
               #{post.id}
             </a>
@@ -99,7 +99,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
             href={post.preview.url || post.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mx-5 mb-6 block rounded-xl border border-stone-200 bg-stone-50 p-4 transition hover:border-rose-300 sm:mx-8 dark:border-stone-800 dark:bg-stone-950"
+            className="mx-5 mb-6 block rounded-xl border border-rose-200/70 bg-rose-50/80 p-4 transition hover:border-rose-400 sm:mx-8 dark:border-rose-900/40 dark:bg-rose-950/40"
           >
             {post.preview.image ? (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -110,7 +110,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
               />
             ) : null}
             {post.preview.site ? (
-              <div className="text-xs uppercase tracking-wide text-stone-500">
+              <div className="text-xs uppercase tracking-wide text-rose-500/80">
                 {post.preview.site}
               </div>
             ) : null}
@@ -118,19 +118,19 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
               <div className="font-medium">{post.preview.title}</div>
             ) : null}
             {post.preview.description ? (
-              <div className="text-sm text-stone-600 dark:text-stone-400">
+              <div className="text-sm text-rose-700/80 dark:text-rose-200/70">
                 {post.preview.description}
               </div>
             ) : null}
           </a>
         ) : null}
 
-        <footer className="border-t border-stone-200/70 px-5 py-4 text-sm dark:border-stone-800 sm:px-8">
+        <footer className="border-t border-rose-200/60 px-5 py-4 text-sm dark:border-rose-900/40 sm:px-8">
           <a
             href={post.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-rose-600 transition hover:text-rose-700"
+            className="inline-flex items-center gap-1.5 text-rose-600 transition hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-100"
           >
             Открыть в Telegram
             <span aria-hidden>↗</span>
@@ -142,12 +142,12 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
         {prev ? (
           <Link
             href={`/post/${prev.id}`}
-            className="group rounded-2xl border border-stone-200/70 bg-white p-4 transition hover:border-rose-300 dark:border-stone-800 dark:bg-stone-900"
+            className="group rounded-2xl border border-rose-200/70 bg-white/85 p-4 backdrop-blur-sm transition hover:border-rose-400 dark:border-rose-900/40 dark:bg-rose-950/60"
           >
-            <div className="text-xs uppercase tracking-wide text-stone-400">
+            <div className="text-xs uppercase tracking-wide text-rose-400/80">
               ← Предыдущий
             </div>
-            <div className="mt-1 line-clamp-2 text-sm text-stone-700 dark:text-stone-300">
+            <div className="mt-1 line-clamp-2 text-sm text-rose-900/80 dark:text-rose-100/80">
               {prev.text ? prev.text.slice(0, 100) : `Пост #${prev.id}`}
             </div>
           </Link>
@@ -157,12 +157,12 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
         {next ? (
           <Link
             href={`/post/${next.id}`}
-            className="group rounded-2xl border border-stone-200/70 bg-white p-4 text-right transition hover:border-rose-300 dark:border-stone-800 dark:bg-stone-900"
+            className="group rounded-2xl border border-rose-200/70 bg-white/85 p-4 text-right backdrop-blur-sm transition hover:border-rose-400 dark:border-rose-900/40 dark:bg-rose-950/60"
           >
-            <div className="text-xs uppercase tracking-wide text-stone-400">
+            <div className="text-xs uppercase tracking-wide text-rose-400/80">
               Следующий →
             </div>
-            <div className="mt-1 line-clamp-2 text-sm text-stone-700 dark:text-stone-300">
+            <div className="mt-1 line-clamp-2 text-sm text-rose-900/80 dark:text-rose-100/80">
               {next.text ? next.text.slice(0, 100) : `Пост #${next.id}`}
             </div>
           </Link>

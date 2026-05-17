@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { BackgroundCats, CatFace } from "@/components/Cats";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -19,16 +20,20 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ru" className={`${manrope.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
-        <header className="border-b border-stone-200/70 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-stone-800 dark:bg-stone-950/80">
-          <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+      <body className="min-h-full flex flex-col">
+        <BackgroundCats />
+
+        <header className="border-b border-rose-200/60 bg-rose-50/70 backdrop-blur supports-[backdrop-filter]:bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/40">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
             <Link href="/" className="group flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-rose-400 to-amber-300 text-white shadow-sm transition-transform group-hover:rotate-6">
-                <span className="text-base font-bold">A</span>
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-pink-300 text-rose-700 shadow-sm transition-transform group-hover:rotate-[8deg] dark:from-rose-900 dark:to-pink-800 dark:text-rose-100">
+                <CatFace className="h-7 w-7" />
               </span>
               <span className="flex flex-col leading-tight">
-                <span className="text-base font-semibold tracking-tight">annekedisi</span>
-                <span className="text-xs text-stone-500 dark:text-stone-400">
+                <span className="text-base font-semibold tracking-tight text-rose-950 dark:text-rose-100">
+                  annekedisi
+                </span>
+                <span className="text-xs text-rose-500/80 dark:text-rose-300/70">
                   заметки и кадры
                 </span>
               </span>
@@ -37,7 +42,7 @@ export default function RootLayout({
               href="https://t.me/annekedisi"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 py-1.5 text-xs font-medium text-stone-700 transition hover:border-rose-300 hover:text-rose-600 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300"
+              className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-rose-700 shadow-sm transition hover:border-rose-400 hover:text-rose-800 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
             >
               <TelegramIcon className="h-3.5 w-3.5" />
               в Telegram
@@ -45,13 +50,13 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 relative">{children}</main>
 
-        <footer className="border-t border-stone-200/70 mt-16 dark:border-stone-800">
-          <div className="mx-auto max-w-3xl px-5 py-8 text-center text-xs text-stone-500 dark:text-stone-400">
+        <footer className="mt-16 border-t border-rose-200/60 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30">
+          <div className="mx-auto max-w-6xl px-5 py-8 text-center text-xs text-rose-500/80 dark:text-rose-300/70">
             Источник —{" "}
             <a
-              className="underline decoration-dotted hover:text-rose-600"
+              className="underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-100"
               href="https://t.me/annekedisi"
               target="_blank"
               rel="noopener noreferrer"

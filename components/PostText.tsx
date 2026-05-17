@@ -38,7 +38,7 @@ export function PostText({ text, clamp }: { text: string; clamp?: number }) {
   }
   const lines = content.split("\n");
   return (
-    <div className="whitespace-pre-line leading-relaxed text-stone-800 dark:text-stone-200">
+    <div className="whitespace-pre-line leading-relaxed text-rose-950/90 dark:text-rose-50/90">
       {lines.map((line, i) => (
         <React.Fragment key={i}>
           {linkifyLine(line, i)}
