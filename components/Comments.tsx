@@ -34,6 +34,12 @@ function formatTime(unix: number): string {
   return `${day} ${month} ${year}, ${hh}:${mm}`;
 }
 
+function snippet(text: string, max = 90): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  return flat.slice(0, max).replace(/\s+\S*$/, "") + "…";
+}
+
 declare global {
   interface Window {
     turnstile?: {
@@ -53,15 +59,50 @@ declare global {
   }
 }
 
+function ReplyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
+      <polyline points="9 17 4 12 9 7" />
+      <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+    </svg>
+  );
+}
+
+function QuotePill({ from }: { from: Comment }) {
+  return (
+    <div className="mb-2 rounded-lg border-l-2 border-rose-400 bg-rose-50/60 px-3 py-1.5 text-xs leading-snug dark:border-rose-500 dark:bg-rose-950/40">
+      <span className="font-medium text-rose-700 dark:text-rose-200">
+        В ответ {from.author}
+      </span>
+      <span className="text-rose-600/80 dark:text-rose-300/70">: {snippet(from.body)}</span>
+    </div>
+  );
+}
+
 function CommentCard({
   comment,
+  quotedFrom,
   onReply,
 }: {
   comment: Comment;
-  onReply?: () => void;
+  quotedFrom?: Comment | null;
+  onReply: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-rose-200/70 bg-white/85 px-4 py-3 backdrop-blur-sm dark:border-rose-900/40 dark:bg-rose-950/40">
+    <div
+      id={`comment-${comment.id}`}
+      className="rounded-2xl border border-rose-200/70 bg-white/85 px-4 py-3 backdrop-blur-sm dark:border-rose-900/40 dark:bg-rose-950/40"
+    >
+      {quotedFrom ? <QuotePill from={quotedFrom} /> : null}
       <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
         <span className="font-medium text-rose-900 dark:text-rose-100">
           {comment.author}
@@ -76,24 +117,13 @@ function CommentCard({
       <p className="whitespace-pre-line text-sm leading-relaxed text-rose-950/90 dark:text-rose-50/90">
         {comment.body}
       </p>
-      {onReply ? (
-        <button
-          onClick={onReply}
-          className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/60"
-        >
-          <ReplyIcon /> Ответить
-        </button>
-      ) : null}
+      <button
+        onClick={onReply}
+        className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-950/60"
+      >
+        <ReplyIcon /> Ответить
+      </button>
     </div>
-  );
-}
-
-function ReplyIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
-      <polyline points="9 17 4 12 9 7" />
-      <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-    </svg>
   );
 }
 
@@ -121,7 +151,6 @@ export function Comments({ postId }: { postId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
-  // Bootstrap
   useEffect(() => {
     let alive = true;
     fetch("/api/config", { cache: "no-store" })
@@ -141,7 +170,6 @@ export function Comments({ postId }: { postId: string }) {
     };
   }, [postId]);
 
-  // Turnstile widget
   useEffect(() => {
     if (!config?.turnstileSiteKey) return;
     const src =
@@ -260,15 +288,35 @@ export function Comments({ postId }: { postId: string }) {
 
   if (config && !config.commentsEnabled) return null;
 
-  // Group: top-level first, replies indexed by parent id
-  const topLevel = comments.filter((c) => !c.parentId);
-  const repliesByParent: Record<number, Comment[]> = {};
-  for (const c of comments) {
-    if (c.parentId) {
-      (repliesByParent[c.parentId] ||= []).push(c);
+  // ----- thread grouping -----
+  // Public list is flat. We:
+  //   1. Index by id
+  //   2. For each comment, walk up parentId to find its root (top-level)
+  //   3. Group all descendants under their root; render them flat, in
+  //      chronological order, with a quote pill showing the IMMEDIATE
+  //      parent when the parent isn't the root itself.
+  const byId = new Map(comments.map((c) => [c.id, c]));
+  const findRoot = (c: Comment): Comment | null => {
+    let cur: Comment | undefined = c;
+    const seen = new Set<number>();
+    while (cur && cur.parentId && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      const parent = byId.get(cur.parentId);
+      if (!parent) return null;
+      cur = parent;
     }
+    return cur && !cur.parentId ? cur : null;
+  };
+
+  const topLevel = comments.filter((c) => !c.parentId);
+  const repliesByRoot: Record<number, Comment[]> = {};
+  for (const c of comments) {
+    if (!c.parentId) continue;
+    const root = findRoot(c);
+    if (!root) continue; // orphan (parent chain not approved) — skip
+    (repliesByRoot[root.id] ||= []).push(c);
   }
-  for (const arr of Object.values(repliesByParent)) {
+  for (const arr of Object.values(repliesByRoot)) {
     arr.sort((a, b) => a.createdAt - b.createdAt);
   }
 
@@ -305,13 +353,27 @@ export function Comments({ postId }: { postId: string }) {
           {topLevel.map((c) => (
             <li key={c.id}>
               <CommentCard comment={c} onReply={() => startReply(c)} />
-              {repliesByParent[c.id]?.length ? (
+              {repliesByRoot[c.id]?.length ? (
                 <ol className="mt-2 ml-4 space-y-2 border-l-2 border-rose-200/80 pl-4 dark:border-rose-900/40 sm:ml-6 sm:pl-5">
-                  {repliesByParent[c.id].map((r) => (
-                    <li key={r.id}>
-                      <CommentCard comment={r} />
-                    </li>
-                  ))}
+                  {repliesByRoot[c.id].map((r) => {
+                    const directParent = byId.get(r.parentId!);
+                    // Quote only when the immediate parent isn't the root
+                    // (replies-to-replies). Direct replies don't need a
+                    // pill — context is the comment above them.
+                    const quote =
+                      directParent && directParent.id !== c.id
+                        ? directParent
+                        : null;
+                    return (
+                      <li key={r.id}>
+                        <CommentCard
+                          comment={r}
+                          quotedFrom={quote}
+                          onReply={() => startReply(r)}
+                        />
+                      </li>
+                    );
+                  })}
                 </ol>
               ) : null}
             </li>

@@ -341,8 +341,9 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Optional parentId — must reference an approved comment on the same
-      // post, and that comment itself must be top-level (single level of
-      // nesting only).
+      // post. Any depth is allowed; the front-end flattens all descendants
+      // under a single root visually and shows a quote of the immediate
+      // parent for replies-to-replies.
       let parentId = null;
       if (body.parentId !== undefined && body.parentId !== null && body.parentId !== "") {
         const pid = Number(body.parentId);
@@ -353,9 +354,6 @@ const server = http.createServer(async (req, res) => {
         const parent = existing.comments.find((c) => c.id === pid);
         if (!parent || parent.postId !== postId || parent.status !== "approved") {
           return send(res, 400, { error: "Родительский комментарий не найден" });
-        }
-        if (parent.parentId) {
-          return send(res, 400, { error: "Можно отвечать только на верхний уровень" });
         }
         parentId = pid;
       }
@@ -496,14 +494,21 @@ const server = http.createServer(async (req, res) => {
       if (!requireAdmin()) return;
       const id = Number(adminCommentMatch[1]);
       const data = readJsonOrDefault(COMMENTS_FILE, DEFAULT_COMMENTS);
-      const i = data.comments.findIndex((x) => x.id === id);
-      if (i === -1) return send(res, 404, { error: "comment not found" });
-      // Cascade: also drop any replies that hang off this comment.
-      const target = data.comments[i];
-      const isTopLevel = !target.parentId;
-      data.comments = data.comments.filter(
-        (c) => c.id !== id && !(isTopLevel && c.parentId === id)
-      );
+      if (!data.comments.some((c) => c.id === id))
+        return send(res, 404, { error: "comment not found" });
+      // Cascade through any depth: drop the target and every descendant.
+      const toDelete = new Set([id]);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const c of data.comments) {
+          if (c.parentId && toDelete.has(c.parentId) && !toDelete.has(c.id)) {
+            toDelete.add(c.id);
+            changed = true;
+          }
+        }
+      }
+      data.comments = data.comments.filter((c) => !toDelete.has(c.id));
       atomicWrite(COMMENTS_FILE, data);
       return send(res, 204, "");
     }
