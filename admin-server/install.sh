@@ -9,11 +9,12 @@
 # You will be prompted for an admin username + password. Both are hashed with
 # scrypt and stored only on the server. Repeat the install to rotate.
 
-# Self-heal CRLF if scp'd from a Windows working tree
-if head -c4096 "$0" | grep -q $'\r'; then
-    sed -i 's/\r$//' "$0"
-    exec bash "$0" "$@"
-fi
+# Self-heal CRLF if scp'd from a Windows working tree.
+# This block is the very first executable code: bash on Linux cannot parse
+# 'fi\r' or 'then\r', so we use only single-line commands with no
+# control structures. The flag is set in env so re-exec doesn't loop.
+[ -n "${INSTALL_CRLF_CLEANED:-}" ] || ( sed -i 's/\r$//' "$0" )
+[ -n "${INSTALL_CRLF_CLEANED:-}" ] || exec env INSTALL_CRLF_CLEANED=1 bash "$0" "$@"
 
 set -euo pipefail
 
