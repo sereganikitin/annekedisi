@@ -18,6 +18,7 @@
       --accent-hover: #be123c;
       --danger: #b91c1c;
       --ok: #15803d;
+      --pending: #b45309;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -58,12 +59,24 @@
     h2 { font-size: 1.1rem; margin: 0 0 12px; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 24px; padding-bottom: 16px;
+      margin-bottom: 16px; padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
     .topbar a.home { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
     .topbar a.home:hover { color: var(--accent); }
     .userbar { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--muted); }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .tab {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--card); color: var(--muted); cursor: pointer;
+      font: inherit; font-size: 0.9rem; transition: all 0.15s;
+    }
+    .tab:hover { color: var(--accent); border-color: var(--accent); }
+    .tab.active {
+      background: var(--accent); color: white; border-color: var(--accent); font-weight: 500;
+    }
+
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
@@ -73,8 +86,10 @@
     .btn:hover { border-color: var(--accent); color: var(--accent); }
     .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
     .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
-    .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
-    .btn.tiny { padding: 4px 8px; font-size: 0.8rem; border-radius: 8px; }
+    .btn.ok { color: var(--ok); border-color: rgba(21,128,61,0.3); }
+    .btn.ok:hover { background: rgba(21,128,61,0.1); }
+    .btn.danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(185,28,28,0.06); }
+    .btn.tiny { padding: 4px 10px; font-size: 0.8rem; border-radius: 8px; }
     .btn.icon { padding: 6px 8px; font-size: 0.85rem; }
     .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
@@ -90,15 +105,18 @@
 
     label.field { display: block; margin-bottom: 12px; }
     label.field .lbl { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-    input[type=text], input[type=password], input[type=url] {
+    input[type=text], input[type=password], input[type=url], textarea {
       width: 100%; padding: 10px 12px; border-radius: 12px;
       border: 1px solid var(--border); background: rgba(255,255,255,0.85);
       color: var(--text); font: inherit;
     }
+    textarea { font-family: inherit; resize: vertical; min-height: 80px; }
     @media (prefers-color-scheme: dark) {
-      input[type=text], input[type=password], input[type=url] { background: rgba(30,12,20,0.6); }
+      input[type=text], input[type=password], input[type=url], textarea {
+        background: rgba(30,12,20,0.6);
+      }
     }
-    input:focus { outline: 2px solid rgba(225,29,72,0.4); outline-offset: 1px; }
+    input:focus, textarea:focus { outline: 2px solid rgba(225,29,72,0.4); outline-offset: 1px; }
 
     .link-row {
       display: grid; grid-template-columns: 1fr 2fr auto auto auto;
@@ -107,7 +125,6 @@
     }
     .link-row:last-child { border-bottom: 0; }
     .link-row input { padding: 8px 10px; }
-    .link-row .ctrls { display: flex; gap: 4px; }
     .row-empty { color: var(--muted); font-style: italic; padding: 8px 0; font-size: 0.9rem; }
 
     .post-card {
@@ -131,9 +148,7 @@
     .post-card-head .pid a { color: var(--muted); font-size: 0.8rem; text-decoration: none; }
     .post-card-head .pid a:hover { color: var(--accent); }
 
-    .add-row {
-      display: flex; gap: 8px; margin-top: 12px;
-    }
+    .add-row { display: flex; gap: 8px; margin-top: 12px; }
     .add-row input { flex: 1; }
 
     .alert {
@@ -158,13 +173,56 @@
     }
     .save-bar .status { flex: 1; color: var(--muted); font-size: 0.85rem; }
 
-    .login-shell {
-      max-width: 380px; margin: 12vh auto 0;
-    }
+    .login-shell { max-width: 380px; margin: 12vh auto 0; }
     .login-shell .card { padding: 28px; }
     .center { text-align: center; }
     .muted { color: var(--muted); font-size: 0.85rem; }
-    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+    /* --- comments admin --- */
+    .filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .filter {
+      padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer;
+      font: inherit; font-size: 0.8rem;
+    }
+    .filter:hover { color: var(--accent); }
+    .filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .filter .count { opacity: 0.7; margin-left: 4px; }
+
+    .comment-row {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.6);
+    }
+    @media (prefers-color-scheme: dark) {
+      .comment-row { background: rgba(30,12,20,0.4); }
+    }
+    .comment-head {
+      display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .comment-author { font-weight: 600; }
+    .comment-email { color: var(--muted); font-size: 0.85rem; }
+    .comment-meta { color: var(--muted); font-size: 0.8rem; }
+    .comment-meta a { color: inherit; text-decoration: none; border-bottom: 1px dotted; }
+    .comment-meta a:hover { color: var(--accent); }
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .badge.pending  { background: rgba(180,83,9,0.15); color: var(--pending); }
+    .badge.approved { background: rgba(21,128,61,0.15); color: var(--ok); }
+    .badge.spam     { background: rgba(185,28,28,0.15); color: var(--danger); }
+    .comment-body {
+      white-space: pre-line; line-height: 1.55; margin: 8px 0 12px;
+      padding: 0; font-size: 0.95rem;
+    }
+    .comment-body.editing { display: none; }
+    .comment-actions {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -188,11 +246,30 @@
       return el;
     };
 
+    const MONTHS_RU = [
+      "января", "февраля", "марта", "апреля", "мая", "июня",
+      "июля", "августа", "сентября", "октября", "ноября", "декабря",
+    ];
+    function fmtTime(unix) {
+      const d = new Date(unix * 1000);
+      const day = d.getDate();
+      const month = MONTHS_RU[d.getMonth()];
+      const year = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${day} ${month} ${year}, ${hh}:${mm}`;
+    }
+
     const state = {
       user: null,
-      data: null,
-      dirty: false,
-      saving: false,
+      tab: "partners",                // "partners" | "comments"
+      partners: null,
+      partnersDirty: false,
+      partnersSaving: false,
+      comments: [],
+      commentsLoaded: false,
+      commentFilter: "pending",       // "pending" | "approved" | "spam" | "all"
+      editingId: null,                // comment id being edited
       message: null,
       messageType: "ok",
     };
@@ -224,26 +301,30 @@
     async function bootstrap() {
       const me = await api("GET", "/me");
       if (me.status === 200) {
-        await loadData(me.data.user);
+        await loadInitial(me.data.user);
       } else {
         setState({ user: null });
       }
     }
 
-    async function loadData(user) {
-      const r = await api("GET", "/partners");
-      if (r.status !== 200) {
-        setMessage("Не удалось загрузить данные: " + (r.data?.error || r.status), "error", 0);
-        return;
-      }
-      setState({ user, data: r.data, dirty: false });
+    async function loadInitial(user) {
+      const [p, c] = await Promise.all([
+        api("GET", "/partners"),
+        api("GET", "/admin/comments?status=all"),
+      ]);
+      setState({
+        user,
+        partners: p.status === 200 ? p.data : null,
+        partnersDirty: false,
+        comments: c.status === 200 ? c.data.items : [],
+        commentsLoaded: c.status === 200,
+      });
     }
 
     async function doLogin(user, password) {
       const r = await api("POST", "/login", { user, password });
       if (r.status === 200) {
-        setMessage("Вход выполнен", "ok");
-        await loadData(r.data.user);
+        await loadInitial(r.data.user);
       } else {
         setMessage("Неверный логин или пароль", "error", 0);
       }
@@ -251,48 +332,84 @@
 
     async function doLogout() {
       await api("POST", "/logout");
-      setState({ user: null, data: null });
+      setState({ user: null, partners: null, comments: [] });
     }
 
-    async function save() {
-      if (!state.data) return;
-      setState({ saving: true });
-      const r = await api("PUT", "/partners", state.data);
-      setState({ saving: false });
+    // --- partners actions ---
+    async function savePartners() {
+      if (!state.partners) return;
+      setState({ partnersSaving: true });
+      const r = await api("PUT", "/partners", state.partners);
+      setState({ partnersSaving: false });
       if (r.status === 200) {
-        setState({ data: r.data, dirty: false });
-        setMessage("Сохранено · изменения видны на сайте сразу", "ok");
+        setState({ partners: r.data, partnersDirty: false });
+        setMessage("Сохранено — изменения уже на сайте", "ok");
       } else if (r.status === 401) {
         setMessage("Сессия истекла — войди заново", "error", 0);
         setState({ user: null });
       } else {
-        setMessage("Ошибка сохранения: " + (r.data?.error || r.status), "error", 0);
+        setMessage("Ошибка: " + (r.data?.error || r.status), "error", 0);
       }
     }
 
-    function mutate(fn) {
-      const clone = JSON.parse(JSON.stringify(state.data));
+    function mutatePartners(fn) {
+      const clone = JSON.parse(JSON.stringify(state.partners));
       fn(clone);
-      setState({ data: clone, dirty: true });
+      setState({ partners: clone, partnersDirty: true });
     }
-
     function move(arr, idx, dir) {
       const j = idx + dir;
       if (j < 0 || j >= arr.length) return;
       const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
     }
 
-    // --- views ---
+    // --- comments actions ---
+    async function reloadComments() {
+      const r = await api("GET", "/admin/comments?status=all");
+      if (r.status === 200) setState({ comments: r.data.items });
+    }
+    async function setCommentStatus(id, status) {
+      const r = await api("PATCH", `/admin/comments/${id}`, { status });
+      if (r.status === 200) {
+        reloadComments();
+        setMessage(
+          status === "approved" ? "Опубликовано на сайте" :
+          status === "spam" ? "Помечено как спам" :
+          "Возвращено в очередь модерации", "ok");
+      } else {
+        setMessage("Ошибка: " + (r.data?.error || r.status), "error", 0);
+      }
+    }
+    async function deleteComment(id) {
+      if (!confirm("Удалить навсегда? Это нельзя отменить.")) return;
+      const r = await api("DELETE", `/admin/comments/${id}`);
+      if (r.status === 204) {
+        reloadComments();
+        setMessage("Удалено", "ok");
+      } else {
+        setMessage("Ошибка: " + (r.data?.error || r.status), "error", 0);
+      }
+    }
+    async function saveCommentEdit(id, body, author) {
+      const r = await api("PATCH", `/admin/comments/${id}`, { body, author });
+      if (r.status === 200) {
+        setState({ editingId: null });
+        reloadComments();
+        setMessage("Сохранено", "ok");
+      } else {
+        setMessage("Ошибка: " + (r.data?.error || r.status), "error", 0);
+      }
+    }
+
+    // ============ views ============
+
     function renderLogin() {
       let u = "", p = "";
-      const submit = (e) => {
-        e.preventDefault();
-        doLogin(u, p);
-      };
+      const submit = (e) => { e.preventDefault(); doLogin(u, p); };
       return h("div", { class: "login-shell" },
         h("div", { class: "card" },
           h("h1", { class: "center" }, "🐈 annekedisi · админка"),
-          h("p", { class: "center muted" }, "Войди, чтобы редактировать партнёрский блок"),
+          h("p", { class: "center muted" }, "Войди, чтобы продолжить"),
           h("form", { onsubmit: submit, style: "margin-top: 16px" },
             h("label", { class: "field" },
               h("span", { class: "lbl" }, "Логин"),
@@ -309,34 +426,35 @@
       );
     }
 
-    function renderLinkRow(link, i, list) {
+    function renderLinkRow(link, i, listAccessor) {
       return h("div", { class: "link-row" },
-        h("input", { type: "text", placeholder: "Название", value: link.title, oninput: (e) => mutate(d => { list(d)[i].title = e.target.value; }) }),
-        h("input", { type: "url",  placeholder: "https://...", value: link.url,   oninput: (e) => mutate(d => { list(d)[i].url   = e.target.value; }) }),
-        h("button", { class: "btn icon", title: "Вверх", onclick: () => mutate(d => move(list(d), i, -1)) }, "↑"),
-        h("button", { class: "btn icon", title: "Вниз", onclick: () => mutate(d => move(list(d), i, +1)) }, "↓"),
-        h("button", { class: "btn icon danger", title: "Удалить", onclick: () => mutate(d => { list(d).splice(i, 1); }) }, "✕"),
+        h("input", { type: "text", placeholder: "Название", value: link.title, oninput: (e) => mutatePartners(d => { listAccessor(d)[i].title = e.target.value; }) }),
+        h("input", { type: "url",  placeholder: "https://...", value: link.url,   oninput: (e) => mutatePartners(d => { listAccessor(d)[i].url = e.target.value; }) }),
+        h("button", { class: "btn icon", title: "Вверх", onclick: () => mutatePartners(d => move(listAccessor(d), i, -1)) }, "↑"),
+        h("button", { class: "btn icon", title: "Вниз", onclick: () => mutatePartners(d => move(listAccessor(d), i, +1)) }, "↓"),
+        h("button", { class: "btn icon danger", title: "Удалить", onclick: () => mutatePartners(d => { listAccessor(d).splice(i, 1); }) }, "✕"),
       );
     }
 
-    function renderEditor() {
-      const { data } = state;
+    function renderPartnersTab() {
+      const { partners } = state;
+      if (!partners) return h("div", { class: "card muted" }, "Загрузка…");
 
       const globalList = (d) => d.global;
       const globalSection = h("div", { class: "card" },
         h("h2", null, "Глобальные ссылки"),
-        h("p", { class: "muted", style: "margin: -6px 0 12px" }, "Показываются на каждой странице поста."),
+        h("p", { class: "muted", style: "margin: -6px 0 12px" }, "Показываются под каждой страницей поста."),
         h("label", { class: "field" },
           h("span", { class: "lbl" }, "Заголовок блока"),
-          h("input", { type: "text", value: data.blockTitle, oninput: (e) => mutate(d => { d.blockTitle = e.target.value; }) }),
+          h("input", { type: "text", value: partners.blockTitle, oninput: (e) => mutatePartners(d => { d.blockTitle = e.target.value; }) }),
         ),
-        ...(data.global.length
-          ? data.global.map((l, i) => renderLinkRow(l, i, globalList))
+        ...(partners.global.length
+          ? partners.global.map((l, i) => renderLinkRow(l, i, globalList))
           : [h("div", { class: "row-empty" }, "Пока нет глобальных ссылок.")]),
         h("button", {
           class: "btn",
           style: "margin-top: 12px",
-          onclick: () => mutate(d => { d.global.push({ title: "", url: "" }); }),
+          onclick: () => mutatePartners(d => { d.global.push({ title: "", url: "" }); }),
         }, "+ Добавить ссылку"),
       );
 
@@ -344,8 +462,8 @@
       const perPostSection = h("div", { class: "card" },
         h("h2", null, "Ссылки для отдельных постов"),
         h("p", { class: "muted", style: "margin: -6px 0 12px" }, "Дополняют глобальные на странице конкретного поста."),
-        ...(data.perPost.length
-          ? data.perPost.map((entry, ei) => {
+        ...(partners.perPost.length
+          ? partners.perPost.map((entry, ei) => {
               const linksList = (d) => d.perPost[ei].links;
               return h("div", { class: "post-card" },
                 h("div", { class: "post-card-head" },
@@ -353,7 +471,7 @@
                     "Пост #" + entry.postId,
                     h("a", { href: "/post/" + entry.postId + "/", target: "_blank", rel: "noopener noreferrer" }, "↗"),
                   ),
-                  h("button", { class: "btn tiny danger", onclick: () => mutate(d => { d.perPost.splice(ei, 1); }) }, "Удалить пост"),
+                  h("button", { class: "btn tiny danger", onclick: () => mutatePartners(d => { d.perPost.splice(ei, 1); }) }, "Удалить пост"),
                 ),
                 ...(entry.links.length
                   ? entry.links.map((l, i) => renderLinkRow(l, i, linksList))
@@ -361,7 +479,7 @@
                 h("button", {
                   class: "btn tiny",
                   style: "margin-top: 8px",
-                  onclick: () => mutate(d => { d.perPost[ei].links.push({ title: "", url: "" }); }),
+                  onclick: () => mutatePartners(d => { d.perPost[ei].links.push({ title: "", url: "" }); }),
                 }, "+ Ссылка для этого поста"),
               );
             })
@@ -381,12 +499,12 @@
                 setMessage("ID поста должен быть числом", "error");
                 return;
               }
-              const existing = data.perPost.find(p => p.postId === newPostId);
+              const existing = partners.perPost.find(p => p.postId === newPostId);
               if (existing) {
                 setMessage("Пост #" + newPostId + " уже в списке", "error");
                 return;
               }
-              mutate(d => { d.perPost.push({ postId: newPostId, links: [] }); });
+              mutatePartners(d => { d.perPost.push({ postId: newPostId, links: [] }); });
               newPostId = "";
               setMessage("Пост добавлен — впиши ссылки внутри карточки", "ok");
             },
@@ -394,6 +512,94 @@
         ),
       );
 
+      return h("div", null,
+        globalSection,
+        perPostSection,
+        h("div", { class: "save-bar" },
+          h("span", { class: "status" }, state.partnersDirty ? "Есть несохранённые изменения" : "Изменений нет"),
+          h("button", { class: "btn primary", disabled: !state.partnersDirty || state.partnersSaving, onclick: savePartners }, state.partnersSaving ? "Сохраняем…" : "Сохранить"),
+        ),
+      );
+    }
+
+    function renderCommentEditing(c) {
+      let body = c.body, author = c.author;
+      return h("div", { class: "post-card", style: "background: rgba(255,255,255,0.85)" },
+        h("label", { class: "field" },
+          h("span", { class: "lbl" }, "Имя"),
+          h("input", { type: "text", value: author, oninput: (e) => author = e.target.value, maxlength: 60 }),
+        ),
+        h("label", { class: "field" },
+          h("span", { class: "lbl" }, "Текст"),
+          h("textarea", { rows: 4, oninput: (e) => body = e.target.value, maxlength: 4000 }, body),
+        ),
+        h("div", { class: "comment-actions" },
+          h("button", { class: "btn primary tiny", onclick: () => saveCommentEdit(c.id, body, author) }, "Сохранить"),
+          h("button", { class: "btn tiny", onclick: () => setState({ editingId: null }) }, "Отмена"),
+        ),
+      );
+    }
+
+    function renderCommentRow(c) {
+      if (state.editingId === c.id) return renderCommentEditing(c);
+
+      const statusBadge = h("span", { class: "badge " + c.status }, ({pending:"на модерации", approved:"опубликован", spam:"спам"}[c.status] || c.status));
+      return h("div", { class: "comment-row" },
+        h("div", { class: "comment-head" },
+          h("span", { class: "comment-author" }, c.author),
+          h("span", { class: "comment-email" }, c.email),
+          statusBadge,
+          h("span", { class: "comment-meta" },
+            h("a", { href: "/post/" + c.postId + "/", target: "_blank", rel: "noopener noreferrer" }, "пост #" + c.postId),
+            " · ",
+            fmtTime(c.createdAt),
+            c.ip ? " · " + c.ip : null,
+          ),
+        ),
+        h("div", { class: "comment-body" }, c.body),
+        h("div", { class: "comment-actions" },
+          c.status !== "approved" ? h("button", { class: "btn ok tiny", onclick: () => setCommentStatus(c.id, "approved") }, "Одобрить") : null,
+          c.status !== "pending"  ? h("button", { class: "btn tiny",    onclick: () => setCommentStatus(c.id, "pending")  }, "В очередь") : null,
+          c.status !== "spam"     ? h("button", { class: "btn tiny",    onclick: () => setCommentStatus(c.id, "spam")     }, "Спам") : null,
+          h("button", { class: "btn tiny", onclick: () => setState({ editingId: c.id }) }, "Править"),
+          h("button", { class: "btn tiny danger", onclick: () => deleteComment(c.id) }, "Удалить"),
+        ),
+      );
+    }
+
+    function renderCommentsTab() {
+      const counts = state.comments.reduce((acc, c) => {
+        acc[c.status] = (acc[c.status] || 0) + 1;
+        acc.all++;
+        return acc;
+      }, { all: 0 });
+      const filter = state.commentFilter;
+      const filtered = state.comments.filter(c => filter === "all" || c.status === filter);
+
+      const filterBtn = (key, label) => h("button", {
+        class: "filter" + (filter === key ? " active" : ""),
+        onclick: () => setState({ commentFilter: key }),
+      }, label, h("span", { class: "count" }, " · " + (counts[key] || 0)));
+
+      return h("div", null,
+        h("div", { class: "card" },
+          h("h2", null, "Комментарии"),
+          h("div", { class: "filters" },
+            filterBtn("pending", "На модерации"),
+            filterBtn("approved", "Опубликованные"),
+            filterBtn("spam", "Спам"),
+            filterBtn("all", "Все"),
+          ),
+          filtered.length
+            ? filtered.map(renderCommentRow)
+            : h("div", { class: "row-empty" }, filter === "pending"
+                ? "Очередь пуста — новых комментариев нет."
+                : "Пусто."),
+        ),
+      );
+    }
+
+    function renderEditor() {
       return h("div", null,
         h("div", { class: "topbar" },
           h("div", null,
@@ -405,32 +611,31 @@
             h("button", { class: "btn tiny", onclick: doLogout }, "Выйти"),
           ),
         ),
-        state.message ? h("div", { class: "alert " + state.messageType }, state.message) : null,
-        globalSection,
-        perPostSection,
-        h("div", { class: "save-bar" },
-          h("span", { class: "status" }, state.dirty ? "Есть несохранённые изменения" : "Изменений нет"),
-          h("button", { class: "btn primary", disabled: !state.dirty || state.saving, onclick: save }, state.saving ? "Сохраняем…" : "Сохранить"),
+        h("div", { class: "tabs" },
+          h("button", { class: "tab" + (state.tab === "partners" ? " active" : ""), onclick: () => setState({ tab: "partners" }) }, "Партнёры"),
+          h("button", { class: "tab" + (state.tab === "comments" ? " active" : ""), onclick: () => setState({ tab: "comments" }) },
+            "Комментарии",
+            (() => {
+              const pending = state.comments.filter(c => c.status === "pending").length;
+              return pending ? h("span", { class: "count", style: "margin-left: 6px; background: rgba(180,83,9,0.2); color: var(--pending); padding: 1px 8px; border-radius: 999px; font-size: 0.72rem" }, pending) : null;
+            })(),
+          ),
         ),
-      );
-    }
-
-    function renderLoading() {
-      return h("div", { class: "login-shell" },
-        h("div", { class: "card center" }, "Загрузка…"),
+        state.message ? h("div", { class: "alert " + state.messageType }, state.message) : null,
+        state.tab === "partners" ? renderPartnersTab() : renderCommentsTab(),
       );
     }
 
     function render() {
       const root = document.getElementById("app");
       root.innerHTML = "";
-      if (state.user && state.data) root.appendChild(renderEditor());
-      else if (state.user && !state.data) root.appendChild(renderLoading());
+      if (state.user && state.partners) root.appendChild(renderEditor());
+      else if (state.user) root.appendChild(h("div", { class: "login-shell" }, h("div", { class: "card center" }, "Загрузка…")));
       else root.appendChild(renderLogin());
     }
 
     window.addEventListener("beforeunload", (e) => {
-      if (state.dirty) {
+      if (state.partnersDirty) {
         e.preventDefault();
         e.returnValue = "";
       }

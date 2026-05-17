@@ -87,6 +87,24 @@ if [ ! -s "${INSTALL_DIR}/env" ] || [ "${1:-}" = "--rotate" ]; then
     " "${P1}" "${SALT_HEX}")"
     JWT_SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("hex"))')"
 
+    echo
+    echo "Cloudflare Turnstile (anti-spam for comments) — optional, press Enter to skip."
+    echo "  Get keys: https://dash.cloudflare.com/?to=/:account/turnstile (free)"
+    echo "  Allowed hostnames must include: pinkcrab.ru"
+    read -r -p "Turnstile Site Key (public, can be empty): " TS_SITE
+    TS_SECRET=""
+    if [ -n "${TS_SITE}" ]; then
+        read -r -s -p "Turnstile Secret Key: " TS_SECRET; echo
+    fi
+
+    echo
+    echo "Comment moderation:"
+    echo "  [1] Manual moderation (recommended) — comments wait for your approval"
+    echo "  [2] Auto-publish — comments appear immediately"
+    read -r -p "Choice [1]: " MODCHOICE
+    AUTO_APPROVE="0"
+    if [ "${MODCHOICE}" = "2" ]; then AUTO_APPROVE="1"; fi
+
     umask 077
     cat > "${INSTALL_DIR}/env" <<EOF
 ADMIN_USER=${USERNAME}
@@ -95,19 +113,27 @@ ADMIN_PASSWORD_HASH=${HASH_HEX}
 JWT_SECRET=${JWT_SECRET}
 DATA_DIR=${DATA_DIR}
 PORT=7777
+TURNSTILE_SITE_KEY=${TS_SITE}
+TURNSTILE_SECRET=${TS_SECRET}
+COMMENTS_AUTO_APPROVE=${AUTO_APPROVE}
 EOF
     chown root:www-data "${INSTALL_DIR}/env"
     chmod 640 "${INSTALL_DIR}/env"
     umask 022
-    unset P1 P2
+    unset P1 P2 TS_SECRET
 else
-    echo "==> ${INSTALL_DIR}/env already present — keeping existing creds (run with --rotate to change)"
+    echo "==> ${INSTALL_DIR}/env already present — keeping existing creds"
+    echo "    To rotate credentials:    sudo bash $0 --rotate"
+    echo "    To add Turnstile later:   sudo nano ${INSTALL_DIR}/env  (then sudo systemctl restart ${SERVICE_NAME})"
 fi
 
 # --- 6. Systemd ---
 echo "==> Enabling systemd"
 systemctl daemon-reload
-systemctl enable --now "${SERVICE_NAME}.service"
+systemctl enable "${SERVICE_NAME}.service" >/dev/null 2>&1 || true
+# Restart picks up any server.js change. If the unit wasn't running yet,
+# this starts it.
+systemctl restart "${SERVICE_NAME}.service"
 sleep 1
 systemctl status "${SERVICE_NAME}.service" --no-pager | head -10
 
