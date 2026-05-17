@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
   schedule:
-    # Refresh posts every 4 hours
-    - cron: "0 */4 * * *"
+    # Refresh posts every hour at :00
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:
@@ -27,7 +27,15 @@ jobs:
         run: npm ci
 
       - name: Fetch fresh posts from Telegram
-        run: npm run fetch:deep
+        # Hourly schedule → light fetch (5 pages ≈ 50 most recent posts).
+        # Manual dispatch → deep fetch (20 pages) so a rebuild can repair
+        # the archive if something goes wrong.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            npm run fetch
+          else
+            npm run fetch:deep
+          fi
         continue-on-error: true
 
       - name: Commit refreshed posts.json
