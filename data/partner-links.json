@@ -1,5 +1,14 @@
 {
   "blockTitle": "Наши друзья и партнёры",
-  "global": [],
+  "global": [
+    {
+      "title": "Профессиональный портретный фотограф",
+      "url": "https://photo.cd-agency.ru/"
+    },
+    {
+      "title": "Веб-разработка любой сложности",
+      "url": "https://web.cd-agency.ru/"
+    }
+  ],
   "perPost": []
 }
