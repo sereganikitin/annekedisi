@@ -284,7 +284,7 @@ function validateNewComment(body) {
 }
 
 // --- routes ---
-const COMMENT_PUBLIC_FIELDS = ["id", "postId", "author", "body", "createdAt"];
+const COMMENT_PUBLIC_FIELDS = ["id", "postId", "parentId", "author", "body", "createdAt"];
 
 function publicComment(c) {
   const out = {};
@@ -340,6 +340,26 @@ const server = http.createServer(async (req, res) => {
         return send(res, 400, { error: e.message });
       }
 
+      // Optional parentId — must reference an approved comment on the same
+      // post, and that comment itself must be top-level (single level of
+      // nesting only).
+      let parentId = null;
+      if (body.parentId !== undefined && body.parentId !== null && body.parentId !== "") {
+        const pid = Number(body.parentId);
+        if (!Number.isInteger(pid) || pid <= 0) {
+          return send(res, 400, { error: "Bad parentId" });
+        }
+        const existing = readJsonOrDefault(COMMENTS_FILE, DEFAULT_COMMENTS);
+        const parent = existing.comments.find((c) => c.id === pid);
+        if (!parent || parent.postId !== postId || parent.status !== "approved") {
+          return send(res, 400, { error: "Родительский комментарий не найден" });
+        }
+        if (parent.parentId) {
+          return send(res, 400, { error: "Можно отвечать только на верхний уровень" });
+        }
+        parentId = pid;
+      }
+
       const tsResult = await verifyTurnstile(body.turnstile, ip);
       if (!tsResult.ok) {
         return send(res, 400, {
@@ -356,6 +376,7 @@ const server = http.createServer(async (req, res) => {
       const comment = {
         id: data.nextId++,
         postId,
+        parentId,
         author: clean.name,
         email: clean.email,
         body: clean.body,
@@ -477,7 +498,12 @@ const server = http.createServer(async (req, res) => {
       const data = readJsonOrDefault(COMMENTS_FILE, DEFAULT_COMMENTS);
       const i = data.comments.findIndex((x) => x.id === id);
       if (i === -1) return send(res, 404, { error: "comment not found" });
-      data.comments.splice(i, 1);
+      // Cascade: also drop any replies that hang off this comment.
+      const target = data.comments[i];
+      const isTopLevel = !target.parentId;
+      data.comments = data.comments.filter(
+        (c) => c.id !== id && !(isTopLevel && c.parentId === id)
+      );
       atomicWrite(COMMENTS_FILE, data);
       return send(res, 204, "");
     }

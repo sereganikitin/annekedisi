@@ -215,6 +215,7 @@
     .badge.pending  { background: rgba(180,83,9,0.15); color: var(--pending); }
     .badge.approved { background: rgba(21,128,61,0.15); color: var(--ok); }
     .badge.spam     { background: rgba(185,28,28,0.15); color: var(--danger); }
+    .badge.reply    { background: rgba(168,85,247,0.15); color: #7c3aed; cursor: help; }
     .comment-body {
       white-space: pre-line; line-height: 1.55; margin: 8px 0 12px;
       padding: 0; font-size: 0.95rem;
@@ -551,11 +552,16 @@
       if (state.editingId === c.id) return renderCommentEditing(c);
 
       const statusBadge = h("span", { class: "badge " + c.status }, ({pending:"на модерации", approved:"опубликован", spam:"спам"}[c.status] || c.status));
-      return h("div", { class: "comment-row" },
+      const parent = c.parentId ? state.comments.find(x => x.id === c.parentId) : null;
+      const parentBadge = c.parentId
+        ? h("span", { class: "badge reply", title: parent ? ("ответ на: " + parent.author) : null }, "↩ ответ #" + c.parentId)
+        : null;
+      return h("div", { class: "comment-row", id: "comment-" + c.id },
         h("div", { class: "comment-head" },
           h("span", { class: "comment-author" }, c.author),
           h("span", { class: "comment-email" }, c.email),
           statusBadge,
+          parentBadge,
           h("span", { class: "comment-meta" },
             h("a", { href: "/post/" + c.postId + "/", target: "_blank", rel: "noopener noreferrer" }, "пост #" + c.postId),
             " · ",
