@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getAllPosts, getPost, getNeighbors, formatDate } from "@/lib/posts";
 import { getSiteConfig, getPartnerLinksFor, absoluteUrl } from "@/lib/site";
 import { getPostSeo } from "@/lib/post-seo";
+import { TOPICS, getPostTopics } from "@/lib/topics";
 import { PostMedia } from "@/components/PostMedia";
 import { PostText } from "@/components/PostText";
 import { PartnerBlock } from "@/components/PartnerBlock";
@@ -37,15 +38,20 @@ export async function generateMetadata(
       url: seo.canonical,
       siteName: site.siteName,
       locale: site.locale,
-      images: post.photos[0] ? [{ url: post.photos[0] }] : undefined,
+      images: post.photos[0]
+        ? [{ url: post.photos[0], alt: seo.h1 }]
+        : undefined,
       publishedTime: post.datetime || undefined,
     },
     twitter: {
       card: post.photos[0] ? "summary_large_image" : "summary",
       title: seo.title,
       description: seo.description,
-      images: post.photos[0] ? [post.photos[0]] : undefined,
+      images: post.photos[0]
+        ? [{ url: post.photos[0], alt: seo.h1 }]
+        : undefined,
     },
+    category: "Блог о кошках, путешествиях и фотографии",
   };
 }
 
@@ -56,6 +62,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
 
   const site = getSiteConfig();
   const seo = getPostSeo(post);
+  const topics = getPostTopics(post);
   const { prev, next } = getNeighbors(id);
   const { title: partnerTitle, links: partnerLinks } = getPartnerLinksFor(id);
 
@@ -141,11 +148,32 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
               #{post.id}
             </a>
           </div>
+          {topics.length > 0 ? (
+            <nav
+              aria-label="Темы поста"
+              className="mt-3 flex flex-wrap gap-1.5"
+            >
+              {topics.map((slug) => (
+                <Link
+                  key={slug}
+                  href={`/tag/${slug}`}
+                  className="rounded-full border border-rose-200 bg-rose-50/80 px-2.5 py-0.5 text-xs font-medium text-rose-700 transition hover:border-rose-400 hover:text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200"
+                >
+                  #{TOPICS[slug].name.toLowerCase()}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
         </header>
 
         {post.photos.length > 0 || post.videos.length > 0 ? (
           <div className="px-3 sm:px-4">
-            <PostMedia photos={post.photos} videos={post.videos} postUrl={post.url} />
+            <PostMedia
+              photos={post.photos}
+              videos={post.videos}
+              postUrl={post.url}
+              altBase={seo.h1}
+            />
           </div>
         ) : null}
 
