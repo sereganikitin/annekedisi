@@ -13,6 +13,13 @@
 //   TURNSTILE_SECRET        Cloudflare Turnstile secret key (server-side)
 //   COMMENTS_AUTO_APPROVE   "1" → comments published immediately; otherwise
 //                           land in "pending" and require admin approval
+//   TELEGRAM_BOT_TOKEN      optional — bot token from @BotFather. When set
+//                           together with TELEGRAM_CHAT_ID, every new
+//                           comment fires a Telegram message to that chat.
+//   TELEGRAM_CHAT_ID        optional — numeric chat id (user id for DM,
+//                           negative number for groups/channels).
+//   PUBLIC_SITE_URL         optional — base URL used in notification links.
+//                           Defaults to https://pinkcrab.ru.
 //
 // Public endpoints (no auth):
 //   GET  /api/healthz                  → "ok"
@@ -46,6 +53,10 @@ const DATA_DIR = must("DATA_DIR");
 const TURNSTILE_SITE_KEY = (process.env.TURNSTILE_SITE_KEY || "").trim();
 const TURNSTILE_SECRET = (process.env.TURNSTILE_SECRET || "").trim();
 const COMMENTS_AUTO_APPROVE = process.env.COMMENTS_AUTO_APPROVE === "1";
+const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || "").trim();
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || "https://pinkcrab.ru")
+  .replace(/\/+$/, "");
 
 const PARTNERS_FILE = path.join(DATA_DIR, "partner-links.json");
 const COMMENTS_FILE = path.join(DATA_DIR, "comments.json");
@@ -283,6 +294,52 @@ function validateNewComment(body) {
   return { name, email, body: text };
 }
 
+// --- Telegram notification ---
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Fire-and-forget — never blocks the HTTP response, just logs on failure.
+function notifyNewComment(comment) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+
+  const statusLabel =
+    comment.status === "approved" ? "опубликован" : "на модерации";
+  const postUrl = `${PUBLIC_SITE_URL}/post/${comment.postId}`;
+  const adminUrl = `${PUBLIC_SITE_URL}/admin/`;
+  const replyHint = comment.parentId ? ` (ответ на #${comment.parentId})` : "";
+  const MAX_BODY = 700;
+  const bodyShort =
+    comment.body.length > MAX_BODY
+      ? comment.body.slice(0, MAX_BODY) + "…"
+      : comment.body;
+
+  const text =
+    `<b>Новый комментарий</b> — ${statusLabel}\n` +
+    `<b>Автор:</b> ${escapeHtml(comment.author)} (${escapeHtml(comment.email)})\n` +
+    `<b>Пост:</b> <a href="${postUrl}">#${comment.postId}</a>${replyHint}\n` +
+    `\n${escapeHtml(bodyShort)}\n` +
+    `\n<a href="${adminUrl}">Открыть модерацию</a>`;
+
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
+  })
+    .then(async (r) => {
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        console.error(`telegram notify failed (${r.status}): ${t}`);
+      }
+    })
+    .catch((err) => console.error("telegram notify error:", err));
+}
+
 // --- routes ---
 const COMMENT_PUBLIC_FIELDS = ["id", "postId", "parentId", "author", "body", "createdAt"];
 
@@ -385,6 +442,7 @@ const server = http.createServer(async (req, res) => {
       };
       data.comments.push(comment);
       atomicWrite(COMMENTS_FILE, data);
+      notifyNewComment(comment);
 
       return send(res, 200, {
         ok: true,
@@ -524,6 +582,8 @@ server.listen(PORT, "127.0.0.1", () => {
   console.log(
     `admin api listening on 127.0.0.1:${PORT} (DATA_DIR=${DATA_DIR}, turnstile=${
       TURNSTILE_SECRET ? "on" : "off"
-    }, auto-approve=${COMMENTS_AUTO_APPROVE})`
+    }, auto-approve=${COMMENTS_AUTO_APPROVE}, telegram=${
+      TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID ? "on" : "off"
+    })`
   );
 });

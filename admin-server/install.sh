@@ -105,6 +105,17 @@ if [ ! -s "${INSTALL_DIR}/env" ] || [ "${1:-}" = "--rotate" ]; then
     AUTO_APPROVE="0"
     if [ "${MODCHOICE}" = "2" ]; then AUTO_APPROVE="1"; fi
 
+    echo
+    echo "Telegram notifications on new comments — optional, press Enter to skip."
+    echo "  1) Create a bot via @BotFather in Telegram, copy the token."
+    echo "  2) Send /start to your new bot, then open"
+    echo "     https://api.telegram.org/bot<TOKEN>/getUpdates and copy chat.id"
+    read -r -p "Telegram bot token (can be empty): " TG_TOKEN
+    TG_CHAT=""
+    if [ -n "${TG_TOKEN}" ]; then
+        read -r -p "Telegram chat id: " TG_CHAT
+    fi
+
     umask 077
     cat > "${INSTALL_DIR}/env" <<EOF
 ADMIN_USER=${USERNAME}
@@ -116,15 +127,18 @@ PORT=7777
 TURNSTILE_SITE_KEY=${TS_SITE}
 TURNSTILE_SECRET=${TS_SECRET}
 COMMENTS_AUTO_APPROVE=${AUTO_APPROVE}
+TELEGRAM_BOT_TOKEN=${TG_TOKEN}
+TELEGRAM_CHAT_ID=${TG_CHAT}
 EOF
     chown root:www-data "${INSTALL_DIR}/env"
     chmod 640 "${INSTALL_DIR}/env"
     umask 022
-    unset P1 P2 TS_SECRET
+    unset P1 P2 TS_SECRET TG_TOKEN
 else
     echo "==> ${INSTALL_DIR}/env already present — keeping existing creds"
-    echo "    To rotate credentials:    sudo bash $0 --rotate"
-    echo "    To add Turnstile later:   sudo nano ${INSTALL_DIR}/env  (then sudo systemctl restart ${SERVICE_NAME})"
+    echo "    To rotate credentials:                sudo bash $0 --rotate"
+    echo "    To add Turnstile / Telegram later:    sudo nano ${INSTALL_DIR}/env"
+    echo "                                          sudo systemctl restart ${SERVICE_NAME}"
 fi
 
 # --- 6. Systemd ---

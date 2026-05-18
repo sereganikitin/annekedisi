@@ -120,6 +120,39 @@ npm run build
 rsync -avz --delete ./out/ seldegram@72.56.12.105:/var/www/landing/
 ```
 
+## Уведомления о новых комментариях (Telegram)
+
+Каждый новый комментарий из `/api/comments/:postId` фоном отправляется в
+Telegram (бот пишет в твою личку или приватный чат). Уведомления идут
+и на pending, и на auto-approved.
+
+### Одноразовая настройка
+
+1. Открой `@BotFather` в Telegram → `/newbot` → дай имя и username
+   (например `annekedisi_admin_bot`). Скопируй **HTTP API token**.
+2. Найди свой бот по username и отправь ему `/start` (бот не сможет
+   писать тебе первым, пока ты не инициируешь чат).
+3. Узнай свой `chat_id`. Открой в браузере:
+   `https://api.telegram.org/bot<TOKEN>/getUpdates`. В ответе найди
+   `"chat":{"id":123456789,...}` — это и есть твой `TELEGRAM_CHAT_ID`.
+   Для группы/канала id будет отрицательным; бот должен быть в чате.
+4. На сервере добавь две строки в `/opt/admin/env` и перезапусти сервис:
+   ```bash
+   ssh root@72.56.12.105
+   sudo nano /opt/admin/env
+   # Добавь:
+   # TELEGRAM_BOT_TOKEN=123456:ABCdef...
+   # TELEGRAM_CHAT_ID=123456789
+   sudo systemctl restart admin
+   sudo journalctl -u admin -n 5
+   # В логе должно быть "telegram=on"
+   ```
+5. Готово. Оставь тестовый комментарий на сайте — бот пришлёт уведомление
+   со ссылкой на пост и на `/admin/`.
+
+При фейлах (бот заблочен, неверный chat id, etc.) ошибка идёт в
+`journalctl -u admin`, отправка не блокирует ответ комментатору.
+
 ## Админка (Sveltia CMS)
 
 Веб-админка живёт по адресу <https://pinkcrab.ru/admin/>. Она правит файлы
