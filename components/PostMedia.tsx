@@ -5,16 +5,28 @@ type Props = {
   videos: Video[];
   postUrl?: string;
   compact?: boolean;
+  altBase?: string;
 };
 
-export function PostMedia({ photos, videos, postUrl, compact = false }: Props) {
+export function PostMedia({
+  photos,
+  videos,
+  postUrl,
+  compact = false,
+  altBase,
+}: Props) {
   const hasPhotos = photos.length > 0;
   const hasVideos = videos.length > 0;
   if (!hasPhotos && !hasVideos) return null;
 
+  const baseAlt =
+    altBase?.trim() || "Фото из блога Annekedisi о кошках, путешествиях и фотографии";
+
   return (
     <div className="space-y-3">
-      {hasPhotos ? <PhotoGrid photos={photos} compact={compact} /> : null}
+      {hasPhotos ? (
+        <PhotoGrid photos={photos} compact={compact} altBase={baseAlt} />
+      ) : null}
       {hasVideos ? (
         <div className="space-y-3">
           {videos.map((v, i) =>
@@ -26,6 +38,7 @@ export function PostMedia({ photos, videos, postUrl, compact = false }: Props) {
                 controls
                 preload={compact ? "none" : "metadata"}
                 playsInline
+                aria-label={baseAlt}
                 className="w-full rounded-2xl bg-black"
               />
             ) : (
@@ -34,6 +47,7 @@ export function PostMedia({ photos, videos, postUrl, compact = false }: Props) {
                 thumb={v.thumb}
                 postUrl={postUrl}
                 compact={compact}
+                alt={baseAlt}
               />
             )
           )}
@@ -47,10 +61,12 @@ function VideoPlaceholder({
   thumb,
   postUrl,
   compact,
+  alt,
 }: {
   thumb: string | null;
   postUrl?: string;
   compact: boolean;
+  alt: string;
 }) {
   const body = (
     <div
@@ -71,7 +87,7 @@ function VideoPlaceholder({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={thumb}
-            alt=""
+            alt={alt}
             loading="lazy"
             className="absolute inset-0 m-auto h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]"
           />
@@ -108,13 +124,24 @@ function VideoPlaceholder({
   return <div className="group">{body}</div>;
 }
 
-function PhotoGrid({ photos, compact }: { photos: Photo[]; compact: boolean }) {
+function PhotoGrid({
+  photos,
+  compact,
+  altBase,
+}: {
+  photos: Photo[];
+  compact: boolean;
+  altBase: string;
+}) {
   const n = photos.length;
+  const altFor = (i: number) =>
+    n > 1 ? `${altBase} — фото ${i + 1} из ${n}` : altBase;
 
   if (n === 1) {
     return (
       <Img
         src={photos[0]}
+        alt={altFor(0)}
         ratio={compact ? "aspect-[16/10]" : "aspect-auto max-h-[80vh]"}
         objectFit={compact ? "object-cover" : "object-contain"}
       />
@@ -123,8 +150,8 @@ function PhotoGrid({ photos, compact }: { photos: Photo[]; compact: boolean }) {
   if (n === 2) {
     return (
       <div className="grid grid-cols-2 gap-1.5">
-        {photos.map((p) => (
-          <Img key={p} src={p} ratio="aspect-square" />
+        {photos.map((p, i) => (
+          <Img key={p} src={p} alt={altFor(i)} ratio="aspect-square" />
         ))}
       </div>
     );
@@ -132,18 +159,18 @@ function PhotoGrid({ photos, compact }: { photos: Photo[]; compact: boolean }) {
   if (n === 3) {
     return (
       <div className="space-y-1.5">
-        <Img src={photos[0]} ratio="aspect-[16/10]" />
+        <Img src={photos[0]} alt={altFor(0)} ratio="aspect-[16/10]" />
         <div className="grid grid-cols-2 gap-1.5">
-          <Img src={photos[1]} ratio="aspect-square" />
-          <Img src={photos[2]} ratio="aspect-square" />
+          <Img src={photos[1]} alt={altFor(1)} ratio="aspect-square" />
+          <Img src={photos[2]} alt={altFor(2)} ratio="aspect-square" />
         </div>
       </div>
     );
   }
   return (
     <div className="grid grid-cols-2 gap-1.5">
-      {photos.map((p) => (
-        <Img key={p} src={p} ratio="aspect-square" />
+      {photos.map((p, i) => (
+        <Img key={p} src={p} alt={altFor(i)} ratio="aspect-square" />
       ))}
     </div>
   );
@@ -151,10 +178,12 @@ function PhotoGrid({ photos, compact }: { photos: Photo[]; compact: boolean }) {
 
 function Img({
   src,
+  alt,
   ratio,
   objectFit = "object-cover",
 }: {
   src: string;
+  alt: string;
   ratio: string;
   objectFit?: string;
 }) {
@@ -163,7 +192,7 @@ function Img({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
-        alt=""
+        alt={alt}
         loading="lazy"
         className={`h-full w-full ${objectFit} transition-transform duration-500 hover:scale-[1.02]`}
       />

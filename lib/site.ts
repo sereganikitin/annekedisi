@@ -7,6 +7,7 @@ export type SiteConfig = {
   title: string;
   tagline: string;
   description: string;
+  keywords: string[];
   ogImage: string;
   telegramChannel: string;
   language: string;
@@ -34,9 +35,23 @@ let partnersCache: PartnerLinksFile | null = null;
 const SITE_DEFAULTS: SiteConfig = {
   siteName: "annekedisi",
   siteUrl: "https://pinkcrab.ru",
-  title: "Annekedisi — блог",
-  tagline: "заметки и кадры",
-  description: "Заметки и кадры из канала Annekedisi",
+  title: "Annekedisi — блог о кошках, путешествиях и фотографии",
+  tagline: "блог о кошках, путешествиях и фотографии",
+  description:
+    "Annekedisi — личный блог о кошках, животных, путешествиях и фотографии: заметки и кадры с прогулок, фотографии кошек, фото из путешествий и сцены из быта.",
+  keywords: [
+    "блог о кошках",
+    "блог о животных",
+    "блог о путешествиях",
+    "блог о фотографии",
+    "фотографии кошек",
+    "фотографии из путешествий",
+    "фото кошек",
+    "кошки",
+    "путешествия",
+    "фотография",
+    "annekedisi",
+  ],
   ogImage: "",
   telegramChannel: "annekedisi",
   language: "ru",

@@ -19,8 +19,10 @@ export function generateMetadata(): Metadata {
     metadataBase: new URL(site.siteUrl),
     title: { default: site.title, template: `%s — ${site.siteName}` },
     description: site.description,
+    keywords: site.keywords?.length ? site.keywords : undefined,
     applicationName: site.siteName,
     robots: site.robots,
+    category: "Блог о кошках, путешествиях и фотографии",
     openGraph: {
       type: "website",
       siteName: site.siteName,
@@ -65,6 +67,28 @@ export default function RootLayout({
     url: site.siteUrl,
     inLanguage: site.language,
     description: site.description,
+    keywords: site.keywords?.length ? site.keywords.join(", ") : undefined,
+  };
+  const blogLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: site.siteName,
+    url: site.siteUrl,
+    inLanguage: site.language,
+    description: site.description,
+    keywords: site.keywords?.length ? site.keywords.join(", ") : undefined,
+    about: [
+      { "@type": "Thing", name: "Кошки" },
+      { "@type": "Thing", name: "Животные" },
+      { "@type": "Thing", name: "Путешествия" },
+      { "@type": "Thing", name: "Фотография" },
+    ],
+    publisher: {
+      "@type": "Organization",
+      name: site.organization.name,
+      url: site.siteUrl,
+      logo: site.organization.logo ? absoluteUrl(site.organization.logo) : undefined,
+    },
   };
 
   return (
@@ -123,6 +147,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }}
         />
 
         {site.yandexMetrika ? (
