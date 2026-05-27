@@ -31,5 +31,13 @@
     "yandex": "17297d0c75f8332c",
     "google": ""
   },
-  "yandexMetrika": "109274078"
+  "yandexMetrika": "109274078",
+  "developer": {
+    "name": "Никитин Сергей Владимирович",
+    "legalName": "ИП Никитин С.В.",
+    "url": "https://web.cd-agency.ru/",
+    "telephone": "+79257437135",
+    "telegram": "https://t.me/web_cdagency/",
+    "jobTitle": "Веб-разработка"
+  }
 }

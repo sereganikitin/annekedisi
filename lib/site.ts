@@ -16,6 +16,14 @@ export type SiteConfig = {
   organization: { name: string; url: string; logo: string };
   verification: { yandex: string; google: string };
   yandexMetrika: string;
+  developer: {
+    name: string;
+    legalName: string;
+    url: string;
+    telephone: string;
+    telegram: string;
+    jobTitle: string;
+  };
 };
 
 export type PartnerLink = { title: string; url: string };
@@ -60,6 +68,14 @@ const SITE_DEFAULTS: SiteConfig = {
   organization: { name: "Annekedisi", url: "https://pinkcrab.ru", logo: "" },
   verification: { yandex: "", google: "" },
   yandexMetrika: "",
+  developer: {
+    name: "",
+    legalName: "",
+    url: "",
+    telephone: "",
+    telegram: "",
+    jobTitle: "",
+  },
 };
 
 const PARTNERS_DEFAULTS: PartnerLinksFile = {

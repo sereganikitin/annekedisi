@@ -15,6 +15,10 @@ const manrope = Manrope({
 export function generateMetadata(): Metadata {
   const site = getSiteConfig();
   const og = site.ogImage ? absoluteUrl(site.ogImage) : undefined;
+  const dev = site.developer;
+  const authors = dev?.name
+    ? [{ name: dev.legalName || dev.name, url: dev.url || undefined }]
+    : undefined;
   return {
     metadataBase: new URL(site.siteUrl),
     title: { default: site.title, template: `%s — ${site.siteName}` },
@@ -23,6 +27,9 @@ export function generateMetadata(): Metadata {
     applicationName: site.siteName,
     robots: site.robots,
     category: "Блог о кошках, путешествиях и фотографии",
+    authors,
+    creator: dev?.legalName || dev?.name || undefined,
+    publisher: site.organization?.name || undefined,
     openGraph: {
       type: "website",
       siteName: site.siteName,
@@ -52,6 +59,30 @@ export default function RootLayout({
   const site = getSiteConfig();
   const tg = `https://t.me/${site.telegramChannel}`;
 
+  const dev = site.developer;
+  const hasDev = !!(dev && dev.name);
+  const developerLd = hasDev
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "@id": `${dev.url.replace(/\/+$/, "")}#person`,
+        name: dev.name,
+        alternateName: dev.legalName || undefined,
+        url: dev.url || undefined,
+        jobTitle: dev.jobTitle || undefined,
+        telephone: dev.telephone || undefined,
+        sameAs: [dev.telegram].filter(Boolean),
+        worksFor: dev.url
+          ? {
+              "@type": "Organization",
+              name: dev.legalName || dev.name,
+              url: dev.url,
+            }
+          : undefined,
+      }
+    : null;
+  const developerRef = hasDev ? { "@id": `${dev.url.replace(/\/+$/, "")}#person` } : undefined;
+
   const orgLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -68,6 +99,7 @@ export default function RootLayout({
     inLanguage: site.language,
     description: site.description,
     keywords: site.keywords?.length ? site.keywords.join(", ") : undefined,
+    creator: developerRef,
   };
   const blogLd = {
     "@context": "https://schema.org",
@@ -89,6 +121,7 @@ export default function RootLayout({
       url: site.siteUrl,
       logo: site.organization.logo ? absoluteUrl(site.organization.logo) : undefined,
     },
+    creator: developerRef,
   };
 
   return (
@@ -152,6 +185,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }}
         />
+        {developerLd ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(developerLd) }}
+          />
+        ) : null}
 
         {site.yandexMetrika ? (
           <>
