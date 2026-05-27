@@ -147,3 +147,35 @@ export function getPostTopics(post: Post): TopicSlug[] {
 export function getPostsByTopic(posts: Post[], slug: TopicSlug): Post[] {
   return posts.filter((p) => detectTopics(p.text || "").includes(slug));
 }
+
+// Score other posts by how many topics they share with the source post.
+// Falls back to recency neighbours if nothing topical matches.
+export function getRelatedPosts(
+  source: Post,
+  all: Post[],
+  limit = 4
+): Post[] {
+  const sourceTopics = new Set(detectTopics(source.text || ""));
+  if (!sourceTopics.size) {
+    const sourceIdx = all.findIndex((p) => p.id === source.id);
+    if (sourceIdx === -1) return all.slice(0, limit);
+    const before = all.slice(sourceIdx + 1, sourceIdx + 1 + limit);
+    const after = all.slice(Math.max(0, sourceIdx - limit), sourceIdx);
+    return [...before, ...after].slice(0, limit);
+  }
+  const scored = all
+    .filter((p) => p.id !== source.id)
+    .map((p) => {
+      const t = detectTopics(p.text || "");
+      const overlap = t.filter((x) => sourceTopics.has(x)).length;
+      return { p, overlap };
+    })
+    .filter((x) => x.overlap > 0)
+    .sort((a, b) => {
+      if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+      const da = a.p.datetime ? Date.parse(a.p.datetime) : 0;
+      const db = b.p.datetime ? Date.parse(b.p.datetime) : 0;
+      return db - da;
+    });
+  return scored.slice(0, limit).map((x) => x.p);
+}

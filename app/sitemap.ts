@@ -22,12 +22,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: `${base}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: `${base}/about/`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     ...tagEntries,
     ...posts.map((p) => ({
       url: `${base}/post/${p.id}/`,
       lastModified: p.datetime ? new Date(p.datetime).toISOString() : now,
       changeFrequency: "weekly" as const,
       priority: 0.7,
+      images: p.photos.length ? p.photos : undefined,
     })),
   ];
 }

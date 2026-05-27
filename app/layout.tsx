@@ -45,7 +45,14 @@ export function generateMetadata(): Metadata {
       description: site.description,
       images: og ? [og] : [],
     },
-    alternates: { canonical: site.siteUrl },
+    alternates: {
+      canonical: site.siteUrl,
+      types: {
+        "application/rss+xml": [
+          { url: "/rss.xml", title: `${site.siteName} — RSS` },
+        ],
+      },
+    },
     verification: {
       yandex: site.verification?.yandex || undefined,
       google: site.verification?.google || undefined,
@@ -159,17 +166,32 @@ export default function RootLayout({
         <main className="flex-1 relative">{children}</main>
 
         <footer className="mt-16 border-t border-rose-200/60 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30">
-          <div className="mx-auto max-w-6xl px-5 py-8 text-center text-xs text-rose-500/80 dark:text-rose-300/70">
-            Источник —{" "}
-            <a
+          <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center text-xs text-rose-500/80 dark:text-rose-300/70 sm:flex-row sm:justify-center sm:gap-5">
+            <Link
+              href="/about"
               className="underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-100"
-              href={tg}
-              target="_blank"
-              rel="noopener noreferrer"
             >
-              @{site.telegramChannel}
+              Об авторе и блоге
+            </Link>
+            <span className="hidden sm:inline opacity-50">·</span>
+            <a
+              href="/rss.xml"
+              className="underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-100"
+            >
+              RSS
             </a>
-            . Сайт не является официальным.
+            <span className="hidden sm:inline opacity-50">·</span>
+            <span>
+              Источник —{" "}
+              <a
+                className="underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-100"
+                href={tg}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                @{site.telegramChannel}
+              </a>
+            </span>
           </div>
         </footer>
 

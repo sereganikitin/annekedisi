@@ -4,11 +4,12 @@ import type { Metadata } from "next";
 import { getAllPosts, getPost, getNeighbors, formatDate } from "@/lib/posts";
 import { getSiteConfig, getPartnerLinksFor, absoluteUrl } from "@/lib/site";
 import { getPostSeo } from "@/lib/post-seo";
-import { TOPICS, getPostTopics } from "@/lib/topics";
+import { TOPICS, getPostTopics, getRelatedPosts } from "@/lib/topics";
 import { PostMedia } from "@/components/PostMedia";
 import { PostText } from "@/components/PostText";
 import { PartnerBlock } from "@/components/PartnerBlock";
 import { Comments } from "@/components/Comments";
+import { FeedCard } from "@/components/FeedCard";
 
 export const dynamicParams = false;
 
@@ -65,6 +66,7 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
   const topics = getPostTopics(post);
   const { prev, next } = getNeighbors(id);
   const { title: partnerTitle, links: partnerLinks } = getPartnerLinksFor(id);
+  const related = getRelatedPosts(post, getAllPosts(), 4);
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -263,6 +265,21 @@ export default async function PostPage(props: PageProps<"/post/[id]">) {
           <div />
         )}
       </nav>
+
+      {related.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="mb-4 text-lg font-medium text-rose-900 dark:text-rose-100">
+            Похожие посты
+          </h2>
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {related.map((p) => (
+              <li key={p.id}>
+                <FeedCard post={p} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {/* Future sections go above this block so PartnerBlock always stays
           at the very bottom of the page. */}
